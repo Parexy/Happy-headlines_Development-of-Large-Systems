@@ -4,8 +4,8 @@
 
 x-article-service: &article-service
   build:
-    context: ./ArticleService
-    dockerfile: Dockerfile
+    context: .
+    dockerfile: ArticleService/Dockerfile
   environment:
     ASPNETCORE_ENVIRONMENT: Development
     ASPNETCORE_URLS: http://+:8080

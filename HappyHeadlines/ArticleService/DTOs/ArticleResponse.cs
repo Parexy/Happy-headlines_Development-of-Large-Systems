@@ -1,6 +1,8 @@
-﻿namespace ArticleService.Models;
+﻿using ArticleService.Models;
 
-public class Article
+namespace ArticleService.DTOs;
+
+public class ArticleResponse
 {
     public int Id { get; set; }
 
@@ -9,6 +11,8 @@ public class Article
     public string Content { get; set; } = string.Empty;
 
     public string Author { get; set; } = string.Empty;
+
+    public ArticleRegion Region { get; set; }
 
     public DateTime CreatedAt { get; set; }
 

@@ -16,18 +16,30 @@ public class ArticleDbContext : DbContext
     {
         modelBuilder.Entity<Article>(entity =>
         {
-            entity.HasKey(x => x.Id);
+            entity.HasKey(a => a.Id);
 
-            entity.Property(x => x.Title)
+            entity.Property(a => a.Id)
+                .ValueGeneratedOnAdd();
+
+            entity.Property(a => a.Title)
                 .IsRequired()
                 .HasMaxLength(500);
 
-            entity.Property(x => x.Content)
+            entity.Property(a => a.Content)
                 .IsRequired();
 
-            entity.Property(x => x.Author)
+            entity.Property(a => a.Author)
                 .IsRequired()
                 .HasMaxLength(200);
+
+            entity.Property(a => a.CreatedAt)
+                .IsRequired();
+
+            entity.Property(a => a.PublishedAt)
+                .IsRequired();
+
+            entity.Property(a => a.UpdatedAt)
+                .IsRequired();
         });
     }
 }

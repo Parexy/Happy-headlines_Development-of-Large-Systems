@@ -1,83 +1,159 @@
-using Microsoft.AspNetCore.Mvc;
+using ArticleService.Data;
+using ArticleService.DTOs;
 using ArticleService.Models;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace ArticleService.Controllers;
 
 [ApiController]
-[Route("[controller]")]
+[Route("api/articles")]
 public class ArticlesController : ControllerBase
 {
-    private static readonly List<Article> Articles = new();
+    private readonly IArticleDbContextFactory _dbContextFactory;
+
+    public ArticlesController(IArticleDbContextFactory dbContextFactory)
+    {
+        _dbContextFactory = dbContextFactory;
+    }
+
 
     // CREATE
-    // POST: /Articles
-    [HttpPost(Name = "CreateArticle")]
-    public ActionResult<Article> Create(Article article)
+    // POST /api/articles
+    [HttpPost]
+    public async Task<ActionResult<ArticleResponse>> Create(
+        CreateArticleRequest request)
     {
-        article.Id = Articles.Count + 1;
-        article.PublishedAt = DateTime.UtcNow;
+        await using var db =
+            _dbContextFactory.Create(request.Region);
 
-        Articles.Add(article);
+        var now = DateTime.UtcNow;
+
+        var article = new Article
+        {
+            Title = request.Title,
+            Content = request.Content,
+            Author = request.Author,
+
+            CreatedAt = now,
+            PublishedAt = now,
+            UpdatedAt = now
+        };
+
+        db.Articles.Add(article);
+
+        await db.SaveChangesAsync();
+
+        var response = ToResponse(
+            article,
+            request.Region);
 
         return CreatedAtAction(
             nameof(Get),
-            new { id = article.Id },
-            article);
+            new
+            {
+                region = request.Region,
+                id = article.Id
+            },
+            response);
     }
 
 
     // READ
-    // GET: /Articles/1
-    [HttpGet("{id}", Name = "GetArticle")]
-    public ActionResult<Article> Get(int id)
+    // GET /api/articles/Europe/1
+    [HttpGet("{region}/{id:int}")]
+    public async Task<ActionResult<ArticleResponse>> Get(
+        ArticleRegion region,
+        int id)
     {
-        var article = Articles.FirstOrDefault(a => a.Id == id);
+        await using var db =
+            _dbContextFactory.Create(region);
+
+        var article = await db.Articles
+            .AsNoTracking()
+            .FirstOrDefaultAsync(a => a.Id == id);
 
         if (article == null)
         {
             return NotFound();
         }
 
-        return Ok(article);
+        return Ok(ToResponse(article, region));
     }
 
 
     // UPDATE
-    // PUT: /Articles/1
-    [HttpPut("{id}", Name = "UpdateArticle")]
-    public IActionResult Update(int id, Article updatedArticle)
+    // PUT /api/articles/Europe/1
+    [HttpPut("{region}/{id:int}")]
+    public async Task<ActionResult<ArticleResponse>> Update(
+        ArticleRegion region,
+        int id,
+        UpdateArticleRequest request)
     {
-        var article = Articles.FirstOrDefault(a => a.Id == id);
+        await using var db =
+            _dbContextFactory.Create(region);
+
+        var article = await db.Articles
+            .FirstOrDefaultAsync(a => a.Id == id);
 
         if (article == null)
         {
             return NotFound();
         }
 
-        article.Title = updatedArticle.Title;
-        article.Content = updatedArticle.Content;
+        article.Title = request.Title;
+        article.Content = request.Content;
+        article.Author = request.Author;
 
-        return Ok(article);
+        article.UpdatedAt = DateTime.UtcNow;
+
+        await db.SaveChangesAsync();
+
+        return Ok(ToResponse(article, region));
     }
 
 
     // DELETE
-    // DELETE: /Articles/1
-    [HttpDelete("{id}", Name = "DeleteArticle")]
-    public IActionResult Delete(int id)
+    // DELETE /api/articles/Europe/1
+    [HttpDelete("{region}/{id:int}")]
+    public async Task<IActionResult> Delete(
+        ArticleRegion region,
+        int id)
     {
-        var article = Articles.FirstOrDefault(a => a.Id == id);
+        await using var db =
+            _dbContextFactory.Create(region);
+
+        var article = await db.Articles
+            .FirstOrDefaultAsync(a => a.Id == id);
 
         if (article == null)
         {
             return NotFound();
         }
 
-        Articles.Remove(article);
+        db.Articles.Remove(article);
+
+        await db.SaveChangesAsync();
 
         return NoContent();
     }
+
+
+    private static ArticleResponse ToResponse(
+        Article article,
+        ArticleRegion region)
+    {
+        return new ArticleResponse
+        {
+            Id = article.Id,
+            Title = article.Title,
+            Content = article.Content,
+            Author = article.Author,
+            Region = region,
+
+            CreatedAt = article.CreatedAt,
+            PublishedAt = article.PublishedAt,
+            UpdatedAt = article.UpdatedAt
+        };
+    }
 }
-
-
-

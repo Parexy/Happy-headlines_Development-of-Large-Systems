@@ -4,3 +4,7 @@ HappyHeadlines/.vs/
 HappyHeadlines/ArticleService/bin/
 
 HappyHeadlines/ArticleService/obj/
+
+.vs/
+
+HappyHeadlines/ArticleService.Core/

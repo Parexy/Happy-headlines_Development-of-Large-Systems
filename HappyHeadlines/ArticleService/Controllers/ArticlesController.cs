@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using ArticleService.Core.Entities;
+using ArticleService.Models;
 
 namespace ArticleService.Controllers;
 

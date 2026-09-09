@@ -2,7 +2,7 @@ using ProfanityService.Models;
 
 namespace ProfanityService.DTOs;
 
-public class ProfanityCheckResponse
+public class CheckProfanityResponse
 {
     public bool ContainsProfanity { get; set; }
 }

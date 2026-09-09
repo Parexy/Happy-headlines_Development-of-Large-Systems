@@ -15,12 +15,12 @@ public class ProfanityDbContextFactory : IProfanityDbContextFactory
     public ProfanityDbContext Create()
     {
         var connectionString =
-            _configuration.GetConnectionString();
+            _configuration.GetConnectionString("DefaultConnection");
 
         if (string.IsNullOrWhiteSpace(connectionString))
         {
             throw new InvalidOperationException(
-                $"No database configured for region '{region}'.");
+                "No database connection string configured.");
         }
 
         var options = new DbContextOptionsBuilder<ProfanityDbContext>()

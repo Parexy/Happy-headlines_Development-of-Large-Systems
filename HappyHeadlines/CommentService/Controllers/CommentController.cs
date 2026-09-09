@@ -1,5 +1,6 @@
 using CommentService.Data;
 using CommentService.Models;
+using CommentService.DTOs;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Polly.CircuitBreaker;
@@ -56,7 +57,7 @@ namespace CommentService.Controllers
         // Add a new comment
         [HttpPost]
         public async Task<ActionResult<Comment>> AddComment(
-            Comment request,
+            CreateComment request,
             CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(request.Text))

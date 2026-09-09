@@ -1,7 +1,8 @@
+using CommentService.Data;
+using Microsoft.EntityFrameworkCore;
 using Polly;
 using Polly.CircuitBreaker;
 using Polly.Registry;
-using CommentService.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,12 +12,24 @@ builder.Services.AddSingleton<
     ICommentDbContextFactory,
     CommentDbContextFactory>();
 
-builder.Services.AddHttpClient<IProfanityServiceClient, ProfanityServiceClient>(
-    client =>
+builder.Services.AddDbContext<CommentDbContext>(options =>
+{
+    var connectionString =
+        builder.Configuration.GetConnectionString("DefaultConnection")
+        ?? throw new InvalidOperationException(
+            "Comment database connection string is missing.");
+
+    options.UseNpgsql(connectionString);
+});
+
+builder.Services.AddHttpClient<
+    IProfanityServiceClient,
+    ProfanityServiceClient>(client =>
     {
-        var baseUrl = builder.Configuration["ProfanityService:BaseUrl"]
+        var baseUrl =
+            builder.Configuration["ProfanityService:BaseUrl"]
             ?? throw new InvalidOperationException(
-                "ProfanityService:BaseUrl is missing");
+                "ProfanityService:BaseUrl is missing.");
 
         client.BaseAddress = new Uri(baseUrl);
     });

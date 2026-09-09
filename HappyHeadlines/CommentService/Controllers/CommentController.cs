@@ -1,6 +1,6 @@
 using CommentService.Data;
-using CommentService.Models;
 using CommentService.DTOs;
+using CommentService.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Polly.CircuitBreaker;
@@ -22,8 +22,8 @@ namespace CommentService.Controllers
             _profanityServiceClient = profanityServiceClient;
         }
 
+
         // GET /api/comments
-        // Get all comments
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Comment>>> GetAll()
         {
@@ -36,7 +36,6 @@ namespace CommentService.Controllers
 
 
         // GET /api/comments/{id}
-        // Get one comment
         [HttpGet("{id:int}")]
         public async Task<ActionResult<Comment>> Get(int id)
         {
@@ -52,23 +51,8 @@ namespace CommentService.Controllers
             return Ok(comment);
         }
 
-        // GET /api/comments/article/{articleId}
-        // Get all comments for an article
-        [HttpGet("article/{articleId:int}")]
-        public async Task<ActionResult<IEnumerable<Comment>>> GetByArticleId(
-            int articleId)
-        {
-            var comments = await _db.Comments
-                .AsNoTracking()
-                .Where(c => c.ArticleId == articleId)
-                .OrderBy(c => c.CreatedAt)
-                .ToListAsync();
-
-            return Ok(comments);
-        }
 
         // POST /api/comments
-        // Add a new comment
         [HttpPost]
         public async Task<ActionResult<Comment>> AddComment(
             CreateComment request,
@@ -92,26 +76,22 @@ namespace CommentService.Controllers
                         "Comment contains profanity.");
                 }
             }
-            catch (BrokenCircuitException)
+            catch (Exception ex) when (
+                ex is HttpRequestException ||
+                ex is BrokenCircuitException)
             {
                 return StatusCode(
                     StatusCodes.Status503ServiceUnavailable,
                     "Profanity service is currently unavailable.");
             }
-            catch (HttpRequestException)
-            {
-                return StatusCode(
-                    StatusCodes.Status503ServiceUnavailable,
-                    "Profanity service could not be reached.");
-            }
 
             var comment = new Comment
             {
+                ArticleId = request.ArticleId,
                 Author = request.Author,
                 Content = request.Content,
-                ArticleId = request.ArticleId,
                 CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
+                UpdatedAt = null
             };
 
             _db.Comments.Add(comment);
@@ -124,45 +104,17 @@ namespace CommentService.Controllers
                 comment);
         }
 
-        // PUT /api/comments/{id}
-        // Update a comment
-        [HttpPut("{id:int}")]
-        public async Task<ActionResult<Comment>> UpdateComment(
-            int id,
-            Comment request)
-        {
-            if (string.IsNullOrWhiteSpace(request.Content))
-            {
-                return BadRequest("Comment cannot be empty.");
-            }
-
-            var comment = await _db.Comments
-                .FirstOrDefaultAsync(c => c.Id == id);
-
-            if (comment == null)
-            {
-                return NotFound("Comment not found.");
-            }
-
-            comment.Content = request.Content;
-            comment.Author = request.Author;
-            comment.ArticleId = request.ArticleId;
-            comment.UpdatedAt = DateTime.UtcNow;
-
-            await _db.SaveChangesAsync();
-
-            return Ok(comment);
-        }
-
-
 
         // DELETE /api/comments/{id}
-        // Delete a comment
         [HttpDelete("{id:int}")]
-        public async Task<IActionResult> DeleteComment(int id)
+        public async Task<IActionResult> DeleteComment(
+            int id,
+            CancellationToken cancellationToken)
         {
             var comment = await _db.Comments
-                .FirstOrDefaultAsync(c => c.Id == id);
+                .FirstOrDefaultAsync(
+                    c => c.Id == id,
+                    cancellationToken);
 
             if (comment == null)
             {
@@ -171,7 +123,7 @@ namespace CommentService.Controllers
 
             _db.Comments.Remove(comment);
 
-            await _db.SaveChangesAsync();
+            await _db.SaveChangesAsync(cancellationToken);
 
             return NoContent();
         }

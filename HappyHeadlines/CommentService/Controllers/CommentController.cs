@@ -75,6 +75,35 @@ namespace CommentService.Controllers
         }
 
 
+        // PUT /api/comments/{id}
+        // Update a comment
+        [HttpPut("{id:int}")]
+        public async Task<ActionResult<Comment>> UpdateComment(
+            int id,
+            Comment request)
+        {
+            if (string.IsNullOrWhiteSpace(request.Text))
+            {
+                return BadRequest("Comment cannot be empty.");
+            }
+
+            var comment = await _db.Comments
+                .FirstOrDefaultAsync(c => c.Id == id);
+
+            if (comment == null)
+            {
+                return NotFound("Comment not found.");
+            }
+
+            comment.Text = request.Text;
+            comment.Author = request.Author;
+
+            await _db.SaveChangesAsync();
+
+            return Ok(comment);
+        }
+
+
         // DELETE /api/comments/{id}
         // Delete a comment
         [HttpDelete("{id:int}")]

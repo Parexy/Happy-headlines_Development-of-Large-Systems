@@ -16,7 +16,7 @@ public class ProfanityDbContext : DbContext
     {
         modelBuilder.Entity<Profanity>(entity =>
         {
-            entity.ToTable("ProfanityWords");
+            entity.ToTable("Profanity");
 
             entity.HasKey(a => a.Id);
 

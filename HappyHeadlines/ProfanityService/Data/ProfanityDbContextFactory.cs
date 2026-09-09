@@ -1,5 +1,4 @@
-﻿using ProfanityService.Models;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 
 namespace ProfanityService.Data;
 
@@ -15,12 +14,12 @@ public class ProfanityDbContextFactory : IProfanityDbContextFactory
     public ProfanityDbContext Create()
     {
         var connectionString =
-            _configuration.GetConnectionString();
+            _configuration.GetConnectionString("DefaultConnection");
 
         if (string.IsNullOrWhiteSpace(connectionString))
         {
             throw new InvalidOperationException(
-                $"No database configured for region '{region}'.");
+                "No connection string configured for ProfanityDatabase.");
         }
 
         var options = new DbContextOptionsBuilder<ProfanityDbContext>()

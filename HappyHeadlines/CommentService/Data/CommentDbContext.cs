@@ -23,7 +23,7 @@ public class CommentDbContext : DbContext
             entity.Property(a => a.Id)
                 .ValueGeneratedOnAdd();
 
-            entity.Property(a => a.Text)
+            entity.Property(a => a.Content)
                 .IsRequired()
                 .HasMaxLength(500);
             

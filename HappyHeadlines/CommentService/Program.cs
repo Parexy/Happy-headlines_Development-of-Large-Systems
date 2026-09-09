@@ -1,10 +1,15 @@
 using Polly;
 using Polly.CircuitBreaker;
 using Polly.Registry;
+using CommentService.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
+
+builder.Services.AddSingleton<
+    ICommentDbContextFactory,
+    CommentDbContextFactory>();
 
 builder.Services.AddHttpClient<IProfanityServiceClient, ProfanityServiceClient>(
     client =>

@@ -9,11 +9,12 @@ namespace CommentService.Controllers
     [Route("api/comments")]
     public class CommentController : ControllerBase
     {
-        private readonly CommentDbContext _db;
 
-        public CommentController(CommentDbContext db)
+        private readonly ICommentDbContextFactory _dbContextFactory;
+
+        public CommentController(ICommentDbContextFactory dbContextFactory)
         {
-            _db = db;
+            _dbContextFactory = dbContextFactory;
         }
 
         // GET /api/comments
@@ -21,7 +22,9 @@ namespace CommentService.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Comment>>> GetAll()
         {
-            var comments = await _db.Comments
+            await using var db = _dbContextFactory.Create();
+
+            var comments = await db.Comments
                 .AsNoTracking()
                 .ToListAsync();
 
@@ -34,7 +37,9 @@ namespace CommentService.Controllers
         [HttpGet("{id:int}")]
         public async Task<ActionResult<Comment>> Get(int id)
         {
-            var comment = await _db.Comments
+            await using var db = _dbContextFactory.Create();
+
+            var comment = await db.Comments
                 .AsNoTracking()
                 .FirstOrDefaultAsync(c => c.Id == id);
 
@@ -46,6 +51,22 @@ namespace CommentService.Controllers
             return Ok(comment);
         }
 
+        // GET /api/comments/article/{articleId}
+        // Get all comments for an article
+        [HttpGet("article/{articleId:int}")]
+        public async Task<ActionResult<IEnumerable<Comment>>> GetByArticle(
+            int articleId)
+        {
+            await using var db = _dbContextFactory.Create();
+
+            var comments = await db.Comments
+                .AsNoTracking()
+                .Where(c => c.ArticleId == articleId)
+                .OrderBy(c => c.CreatedAt)
+                .ToListAsync();
+
+            return Ok(comments);
+        }
 
         // POST /api/comments
         // Add a new comment
@@ -53,27 +74,41 @@ namespace CommentService.Controllers
         public async Task<ActionResult<Comment>> AddComment(
             Comment request)
         {
-            if (string.IsNullOrWhiteSpace(request.Text))
+            if (request.ArticleId <= 0)
+            {
+                return BadRequest("ArticleId must be greater than 0.");
+            }
+
+            if (string.IsNullOrWhiteSpace(request.Author))
+            {
+                return BadRequest("Author cannot be empty.");
+            }
+
+            if (string.IsNullOrWhiteSpace(request.Content))
             {
                 return BadRequest("Comment cannot be empty.");
             }
 
+            await using var db = _dbContextFactory.Create();
+
             var comment = new Comment
             {
+                ArticleId = request.ArticleId,
                 Author = request.Author,
-                Text = request.Text
+                Content = request.Content,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow,
             };
 
-            _db.Comments.Add(comment);
+            db.Comments.Add(comment);
 
-            await _db.SaveChangesAsync();
+            await db.SaveChangesAsync();
 
             return CreatedAtAction(
                 nameof(Get),
                 new { id = comment.Id },
                 comment);
         }
-
 
         // PUT /api/comments/{id}
         // Update a comment
@@ -82,12 +117,24 @@ namespace CommentService.Controllers
             int id,
             Comment request)
         {
-            if (string.IsNullOrWhiteSpace(request.Text))
+            if (request.ArticleId <= 0)
+            {
+                return BadRequest("ArticleId must be greater than 0.");
+            }
+
+            if (string.IsNullOrWhiteSpace(request.Author))
+            {
+                return BadRequest("Author cannot be empty.");
+            }
+
+            if (string.IsNullOrWhiteSpace(request.Content))
             {
                 return BadRequest("Comment cannot be empty.");
             }
 
-            var comment = await _db.Comments
+            await using var db = _dbContextFactory.Create();
+
+            var comment = await db.Comments
                 .FirstOrDefaultAsync(c => c.Id == id);
 
             if (comment == null)
@@ -95,21 +142,25 @@ namespace CommentService.Controllers
                 return NotFound("Comment not found.");
             }
 
-            comment.Text = request.Text;
+            comment.ArticleId = request.ArticleId;
             comment.Author = request.Author;
+            comment.Content = request.Content;
+            comment.UpdatedAt = DateTime.UtcNow;
 
-            await _db.SaveChangesAsync();
+            await db.SaveChangesAsync();
 
             return Ok(comment);
         }
 
 
-        // DELETE /api/comments/{id}
+         // DELETE /api/comments/{id}
         // Delete a comment
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> DeleteComment(int id)
         {
-            var comment = await _db.Comments
+            await using var db = _dbContextFactory.Create();
+
+            var comment = await db.Comments
                 .FirstOrDefaultAsync(c => c.Id == id);
 
             if (comment == null)
@@ -117,9 +168,9 @@ namespace CommentService.Controllers
                 return NotFound("Comment not found.");
             }
 
-            _db.Comments.Remove(comment);
+            db.Comments.Remove(comment);
 
-            await _db.SaveChangesAsync();
+            await db.SaveChangesAsync();
 
             return NoContent();
         }

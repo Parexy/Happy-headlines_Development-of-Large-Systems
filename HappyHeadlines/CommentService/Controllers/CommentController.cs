@@ -2,6 +2,7 @@ using CommentService.Data;
 using CommentService.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Polly.CircuitBreaker;
 
 namespace CommentService.Controllers
 {
@@ -10,10 +11,14 @@ namespace CommentService.Controllers
     public class CommentController : ControllerBase
     {
         private readonly CommentDbContext _db;
+        private readonly IProfanityServiceClient _profanityServiceClient;
 
-        public CommentController(CommentDbContext db)
+        public CommentController(
+            CommentDbContext db,
+            IProfanityServiceClient profanityServiceClient)
         {
             _db = db;
+            _profanityServiceClient = profanityServiceClient;
         }
 
         // GET /api/comments
@@ -51,11 +56,38 @@ namespace CommentService.Controllers
         // Add a new comment
         [HttpPost]
         public async Task<ActionResult<Comment>> AddComment(
-            Comment request)
+            Comment request,
+            CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(request.Text))
             {
                 return BadRequest("Comment cannot be empty.");
+            }
+
+            try
+            {
+                var containsProfanity =
+                    await _profanityServiceClient.ContainsProfanityAsync(
+                        request.Text,
+                        cancellationToken);
+
+                if (containsProfanity)
+                {
+                    return BadRequest(
+                        "Comment contains profanity.");
+                }
+            }
+            catch (BrokenCircuitException)
+            {
+                return StatusCode(
+                    StatusCodes.Status503ServiceUnavailable,
+                    "Profanity service is currently unavailable.");
+            }
+            catch (HttpRequestException)
+            {
+                return StatusCode(
+                    StatusCodes.Status503ServiceUnavailable,
+                    "Profanity service could not be reached.");
             }
 
             var comment = new Comment
@@ -66,7 +98,7 @@ namespace CommentService.Controllers
 
             _db.Comments.Add(comment);
 
-            await _db.SaveChangesAsync();
+            await _db.SaveChangesAsync(cancellationToken);
 
             return CreatedAtAction(
                 nameof(Get),

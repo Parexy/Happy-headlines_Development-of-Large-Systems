@@ -1,9 +1,11 @@
 <Solution>
   <Folder Name="/database/">
-    <File Path="init.sql" />
+    <File Path="database/ArticleInit.sql" />
+    <File Path="database/CommentInit.sql" />
+    <File Path="database/ProfanityInit.sql" />
   </Folder>
   <Folder Name="/nginx/">
-    <File Path="nginx.conf" />
+    <File Path="nginx/nginx.conf" />
   </Folder>
   <Folder Name="/Solution Items/">
     <File Path="docker-compose.yml" />

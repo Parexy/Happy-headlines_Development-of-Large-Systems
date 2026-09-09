@@ -14,3 +14,6 @@ CREATE TABLE IF NOT EXISTS "Articles"
 
     "UpdatedAt" timestamp with time zone NOT NULL
 );
+
+CREATE INDEX IF NOT EXISTS "IX_Articles_PublishedAt"
+    ON "Articles" ("PublishedAt" DESC);

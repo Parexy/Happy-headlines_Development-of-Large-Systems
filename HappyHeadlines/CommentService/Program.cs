@@ -36,7 +36,13 @@ builder.Services.AddResiliencePipeline<string, HttpResponseMessage>(
             });
     });
 
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
 var app = builder.Build();
+
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.MapControllers();
 

@@ -21,7 +21,21 @@ builder.Services.AddSwaggerGen();
 var app = builder.Build();
 
 app.UseSwagger();
-app.UseSwaggerUI();
+
+app.UseSwaggerUI(options =>
+{
+    options.SwaggerEndpoint(
+        "/openapi/article.json",
+        "Article Service");
+
+    options.SwaggerEndpoint(
+        "/openapi/comment.json",
+        "Comment Service");
+
+    options.SwaggerEndpoint(
+        "/openapi/profanity.json",
+        "Profanity Service");
+});
 
 app.MapControllers();
 

@@ -2,6 +2,6 @@
 {
     public class ProfanityCheckRequest
     {
-        public string Content { get; set; } = string.Empty;
+        public string Text { get; set; } = string.Empty;
     }
 }

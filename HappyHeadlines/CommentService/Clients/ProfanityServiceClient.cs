@@ -30,7 +30,7 @@ public class ProfanityServiceClient : IProfanityServiceClient
                     "/api/profanity/check",
                     new ProfanityCheckRequest
                     {
-                        Content = content
+                        Text = content
                     },
                     token);
             },

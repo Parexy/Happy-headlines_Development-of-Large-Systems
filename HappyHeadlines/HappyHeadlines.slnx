@@ -9,4 +9,6 @@
     <File Path="docker-compose.yml" />
   </Folder>
   <Project Path="ArticleService/ArticleService.csproj" />
+  <Project Path="CommentService/CommentService.csproj" Id="7e37e1bd-3872-4b0e-ae88-f0261d564dd7" />
+  <Project Path="ProfanityService/ProfanityService.csproj" Id="b3408910-cad6-4850-90a0-85f8bf20bbf0" />
 </Solution>

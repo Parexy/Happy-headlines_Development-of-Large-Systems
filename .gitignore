@@ -8,3 +8,7 @@ HappyHeadlines/ArticleService/obj/
 .vs/
 
 HappyHeadlines/ArticleService.Core/
+
+HappyHeadlines/CommentService/obj/
+
+HappyHeadlines/ProfanityService/obj/

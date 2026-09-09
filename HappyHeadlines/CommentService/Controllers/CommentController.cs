@@ -1,7 +1,9 @@
 using CommentService.Data;
 using CommentService.Models;
+using CommentService.DTOs;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Polly.CircuitBreaker;
 
 namespace CommentService.Controllers
 {
@@ -9,12 +11,15 @@ namespace CommentService.Controllers
     [Route("api/comments")]
     public class CommentController : ControllerBase
     {
+        private readonly CommentDbContext _db;
+        private readonly IProfanityServiceClient _profanityServiceClient;
 
-        private readonly ICommentDbContextFactory _dbContextFactory;
-
-        public CommentController(ICommentDbContextFactory dbContextFactory)
+        public CommentController(
+            CommentDbContext db,
+            IProfanityServiceClient profanityServiceClient)
         {
-            _dbContextFactory = dbContextFactory;
+            _db = db;
+            _profanityServiceClient = profanityServiceClient;
         }
 
         // GET /api/comments
@@ -22,9 +27,7 @@ namespace CommentService.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Comment>>> GetAll()
         {
-            await using var db = _dbContextFactory.Create();
-
-            var comments = await db.Comments
+            var comments = await _db.Comments
                 .AsNoTracking()
                 .ToListAsync();
 
@@ -37,9 +40,7 @@ namespace CommentService.Controllers
         [HttpGet("{id:int}")]
         public async Task<ActionResult<Comment>> Get(int id)
         {
-            await using var db = _dbContextFactory.Create();
-
-            var comment = await db.Comments
+            var comment = await _db.Comments
                 .AsNoTracking()
                 .FirstOrDefaultAsync(c => c.Id == id);
 
@@ -54,12 +55,10 @@ namespace CommentService.Controllers
         // GET /api/comments/article/{articleId}
         // Get all comments for an article
         [HttpGet("article/{articleId:int}")]
-        public async Task<ActionResult<IEnumerable<Comment>>> GetByArticle(
+        public async Task<ActionResult<IEnumerable<Comment>>> GetByArticleId(
             int articleId)
         {
-            await using var db = _dbContextFactory.Create();
-
-            var comments = await db.Comments
+            var comments = await _db.Comments
                 .AsNoTracking()
                 .Where(c => c.ArticleId == articleId)
                 .OrderBy(c => c.CreatedAt)
@@ -72,37 +71,52 @@ namespace CommentService.Controllers
         // Add a new comment
         [HttpPost]
         public async Task<ActionResult<Comment>> AddComment(
-            Comment request)
+            CreateComment request,
+            CancellationToken cancellationToken)
         {
-            if (request.ArticleId <= 0)
-            {
-                return BadRequest("ArticleId must be greater than 0.");
-            }
-
-            if (string.IsNullOrWhiteSpace(request.Author))
-            {
-                return BadRequest("Author cannot be empty.");
-            }
-
             if (string.IsNullOrWhiteSpace(request.Content))
             {
                 return BadRequest("Comment cannot be empty.");
             }
 
-            await using var db = _dbContextFactory.Create();
+            try
+            {
+                var containsProfanity =
+                    await _profanityServiceClient.ContainsProfanityAsync(
+                        request.Content,
+                        cancellationToken);
+
+                if (containsProfanity)
+                {
+                    return BadRequest(
+                        "Comment contains profanity.");
+                }
+            }
+            catch (BrokenCircuitException)
+            {
+                return StatusCode(
+                    StatusCodes.Status503ServiceUnavailable,
+                    "Profanity service is currently unavailable.");
+            }
+            catch (HttpRequestException)
+            {
+                return StatusCode(
+                    StatusCodes.Status503ServiceUnavailable,
+                    "Profanity service could not be reached.");
+            }
 
             var comment = new Comment
             {
-                ArticleId = request.ArticleId,
                 Author = request.Author,
                 Content = request.Content,
+                ArticleId = request.ArticleId,
                 CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
             };
 
-            db.Comments.Add(comment);
+            _db.Comments.Add(comment);
 
-            await db.SaveChangesAsync();
+            await _db.SaveChangesAsync(cancellationToken);
 
             return CreatedAtAction(
                 nameof(Get),
@@ -117,24 +131,12 @@ namespace CommentService.Controllers
             int id,
             Comment request)
         {
-            if (request.ArticleId <= 0)
-            {
-                return BadRequest("ArticleId must be greater than 0.");
-            }
-
-            if (string.IsNullOrWhiteSpace(request.Author))
-            {
-                return BadRequest("Author cannot be empty.");
-            }
-
             if (string.IsNullOrWhiteSpace(request.Content))
             {
                 return BadRequest("Comment cannot be empty.");
             }
 
-            await using var db = _dbContextFactory.Create();
-
-            var comment = await db.Comments
+            var comment = await _db.Comments
                 .FirstOrDefaultAsync(c => c.Id == id);
 
             if (comment == null)
@@ -142,25 +144,24 @@ namespace CommentService.Controllers
                 return NotFound("Comment not found.");
             }
 
-            comment.ArticleId = request.ArticleId;
-            comment.Author = request.Author;
             comment.Content = request.Content;
+            comment.Author = request.Author;
+            comment.ArticleId = request.ArticleId;
             comment.UpdatedAt = DateTime.UtcNow;
 
-            await db.SaveChangesAsync();
+            await _db.SaveChangesAsync();
 
             return Ok(comment);
         }
 
 
-         // DELETE /api/comments/{id}
+
+        // DELETE /api/comments/{id}
         // Delete a comment
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> DeleteComment(int id)
         {
-            await using var db = _dbContextFactory.Create();
-
-            var comment = await db.Comments
+            var comment = await _db.Comments
                 .FirstOrDefaultAsync(c => c.Id == id);
 
             if (comment == null)
@@ -168,9 +169,9 @@ namespace CommentService.Controllers
                 return NotFound("Comment not found.");
             }
 
-            db.Comments.Remove(comment);
+            _db.Comments.Remove(comment);
 
-            await db.SaveChangesAsync();
+            await _db.SaveChangesAsync();
 
             return NoContent();
         }

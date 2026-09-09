@@ -7,3 +7,11 @@ CREATE TABLE IF NOT EXISTS "ProfanityWords"
 
 CREATE UNIQUE INDEX IF NOT EXISTS "IX_ProfanityWords_Word"
     ON "ProfanityWords" (LOWER("Word"));
+
+INSERT INTO "Profanity" ("Word")
+VALUES
+    ('fuck'),
+    ('shit'),
+    ('bitch'),
+    ('asshole')
+ON CONFLICT DO NOTHING;

@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "dgSpecHash": "OwVpfqbfa8s=",
+  "success": true,
+  "projectFilePath": "C:\\Skole\\Softwareudvikling\\Development of Large Systems\\HappyHeadlines\\Happy-headlines_Development-of-Large-Systems\\HappyHeadlines\\DraftService\\DraftService.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\claus\\.nuget\\packages\\microsoft.aspnetcore.openapi\\10.0.12\\microsoft.aspnetcore.openapi.10.0.12.nupkg.sha512",
+    "C:\\Users\\claus\\.nuget\\packages\\microsoft.openapi\\2.12.0\\microsoft.openapi.2.12.0.nupkg.sha512",
+    "C:\\Users\\claus\\.nuget\\packages\\microsoft.visualstudio.azure.containers.tools.targets\\1.24.2-preview.1\\microsoft.visualstudio.azure.containers.tools.targets.1.24.2-preview.1.nupkg.sha512"
+  ],
+  "logs": []
+}

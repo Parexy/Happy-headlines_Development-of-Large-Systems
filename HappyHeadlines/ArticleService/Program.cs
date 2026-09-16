@@ -47,7 +47,6 @@ app.UseSwaggerUI(options =>
     options.SwaggerEndpoint(
         "/openapi/draft.json",
         "Draft Service");
-
 });
 
 app.MapControllers();

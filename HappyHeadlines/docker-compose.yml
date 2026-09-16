@@ -4,11 +4,11 @@
 
 # Shared observability configuration used by all .NET services.
 #
-# These hostnames work inside Docker Compose because Docker
-# provides DNS using the service names "seq" and "zipkin".
+# Docker Compose provides DNS using the service names
+# "seq" and "zipkin".
 x-observability: &observability
   Observability__SeqUrl: "http://seq:5341"
-  Observability__ZipkinUrl: "http://zipkin:9411"
+  Observability__ZipkinUrl: "http://zipkin:9411/v1/traces"
 
 
 # Shared configuration for all ArticleService instances.
@@ -81,14 +81,14 @@ x-article-postgres: &article-postgres
 services:
 
   # ============================================================
-  # ArticleService - Nginx load balancer
+  # Nginx - public entry point
   # ============================================================
 
   article-load-balancer:
     image: nginx:alpine
 
     ports:
-      - "8080:80"
+      - "9000:80"
 
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
@@ -97,6 +97,9 @@ services:
       - article-service-1
       - article-service-2
       - article-service-3
+      - comment-service
+      - profanity-service
+      - draft-service
 
 
   # ============================================================
@@ -201,22 +204,15 @@ services:
       # Direct service-to-service communication.
       ProfanityService__BaseUrl: "http://profanity-service:8080"
 
-    ports:
-      - "8081:8080"
-
     depends_on:
       comment-db:
         condition: service_healthy
 
     # Deliberately no depends_on for profanity-service.
     #
-    # CommentService must be capable of running while
+    # CommentService must still be capable of running when
     # ProfanityService is unavailable. The circuit breaker
-    # in CommentService handles that failure.
-    #
-    # There is also deliberately no dependency on Seq or Zipkin.
-    # Observability infrastructure going down should not stop
-    # the business service from starting.
+    # handles failures during runtime.
 
 
   # ============================================================
@@ -258,9 +254,6 @@ services:
       ASPNETCORE_URLS: http://+:8080
 
       ConnectionStrings__DefaultConnection: "Host=profanity-db;Database=profanity;Username=postgres;Password=postgres"
-
-    ports:
-      - "8082:8080"
 
     depends_on:
       profanity-db:
@@ -307,12 +300,10 @@ services:
 
       ConnectionStrings__DefaultConnection: "Host=draft-db;Database=drafts;Username=postgres;Password=postgres"
 
-    ports:
-      - "8083:8080"
-
     depends_on:
       draft-db:
         condition: service_healthy
+
 
   # ============================================================
   # DraftDatabase
@@ -350,7 +341,6 @@ services:
       ACCEPT_EULA: "Y"
 
       # Development only.
-      # Allows access to Seq without configuring authentication.
       SEQ_FIRSTRUN_NOAUTHENTICATION: "True"
 
     ports:

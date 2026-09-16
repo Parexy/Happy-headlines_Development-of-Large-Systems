@@ -18,7 +18,7 @@ public static class ObservabilityExtensions
                      ?? "http://localhost:5341";
 
         var zipkinUrl = builder.Configuration["Observability:ZipkinUrl"]
-                        ?? "http://localhost:9411";
+                        ?? "http://localhost:9411/v1/traces";
 
         builder.Host.UseSerilog((context, services, configuration) =>
         {

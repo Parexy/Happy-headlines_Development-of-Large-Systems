@@ -1,7 +1,13 @@
 using System.Text.Json.Serialization;
 using ProfanityService.Data;
+using Observability;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Shared logging + tracing.
+// Logs -> Seq
+// Traces -> Zipkin
+builder.AddObservability();
 
 builder.Services
     .AddControllers()
@@ -11,7 +17,6 @@ builder.Services
             new JsonStringEnumConverter());
     });
 
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddSingleton<
     IProfanityDbContextFactory,
     ProfanityDbContextFactory>();
@@ -20,6 +25,9 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
+
+// Serilog request logging.
+app.UseObservability();
 
 app.UseSwagger();
 app.UseSwaggerUI();

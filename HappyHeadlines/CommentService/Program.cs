@@ -1,10 +1,16 @@
 using CommentService.Data;
 using Microsoft.EntityFrameworkCore;
+using Observability;
 using Polly;
 using Polly.CircuitBreaker;
 using Polly.Registry;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Shared logging + tracing.
+// Logs -> Seq
+// Traces -> Zipkin
+builder.AddObservability();
 
 builder.Services.AddControllers();
 
@@ -58,6 +64,9 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
+
+// Serilog HTTP request logging.
+app.UseObservability();
 
 app.UseSwagger();
 app.UseSwaggerUI();

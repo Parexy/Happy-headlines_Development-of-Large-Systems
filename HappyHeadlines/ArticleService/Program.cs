@@ -1,7 +1,12 @@
 using System.Text.Json.Serialization;
 using ArticleService.Data;
+using Observability;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Shared logging + tracing configuration.
+// Sends logs to Seq and traces to Zipkin.
+builder.AddObservability();
 
 builder.Services
     .AddControllers()
@@ -19,6 +24,9 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
+
+// Shared Serilog request logging.
+app.UseObservability();
 
 app.UseSwagger();
 

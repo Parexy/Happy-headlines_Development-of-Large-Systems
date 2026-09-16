@@ -2,12 +2,24 @@
 # Reusable configurations
 # ============================================================
 
+# Shared observability configuration used by all .NET services.
+#
+# These hostnames work inside Docker Compose because Docker
+# provides DNS using the service names "seq" and "zipkin".
+x-observability: &observability
+  Observability__SeqUrl: "http://seq:5341"
+  Observability__ZipkinUrl: "http://zipkin:9411"
+
+
+# Shared configuration for all ArticleService instances.
 x-article-service: &article-service
   build:
     context: .
     dockerfile: ArticleService/Dockerfile
 
   environment:
+    <<: *observability
+
     ASPNETCORE_ENVIRONMENT: Development
     ASPNETCORE_URLS: http://+:8080
 
@@ -23,22 +35,30 @@ x-article-service: &article-service
   depends_on:
     article-db-africa:
       condition: service_healthy
+
     article-db-antarctica:
       condition: service_healthy
+
     article-db-asia:
       condition: service_healthy
+
     article-db-europe:
       condition: service_healthy
+
     article-db-north-america:
       condition: service_healthy
+
     article-db-south-america:
       condition: service_healthy
+
     article-db-oceania:
       condition: service_healthy
+
     article-db-global:
       condition: service_healthy
 
 
+# Shared configuration for ArticleService PostgreSQL instances.
 x-article-postgres: &article-postgres
   image: postgres:17
 
@@ -53,6 +73,10 @@ x-article-postgres: &article-postgres
     timeout: 5s
     retries: 10
 
+
+# ============================================================
+# Services
+# ============================================================
 
 services:
 
@@ -167,6 +191,8 @@ services:
       dockerfile: CommentService/Dockerfile
 
     environment:
+      <<: *observability
+
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:8080
 
@@ -187,6 +213,10 @@ services:
     # CommentService must be capable of running while
     # ProfanityService is unavailable. The circuit breaker
     # in CommentService handles that failure.
+    #
+    # There is also deliberately no dependency on Seq or Zipkin.
+    # Observability infrastructure going down should not stop
+    # the business service from starting.
 
 
   # ============================================================
@@ -222,6 +252,8 @@ services:
       dockerfile: ProfanityService/Dockerfile
 
     environment:
+      <<: *observability
+
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:8080
 
@@ -268,10 +300,12 @@ services:
       dockerfile: DraftService/Dockerfile
 
     environment:
+      <<: *observability
+
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:8080
 
-      ConnectionStrings__DefaultConnection: "Host=draft-db;Database=draft;Username=postgres;Password=postgres"
+      ConnectionStrings__DefaultConnection: "Host=draft-db;Database=drafts;Username=postgres;Password=postgres"
 
     ports:
       - "8083:8080"
@@ -288,7 +322,7 @@ services:
     image: postgres:17
 
     environment:
-      POSTGRES_DB: draft
+      POSTGRES_DB: drafts
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
 
@@ -297,16 +331,57 @@ services:
       - ./database/DraftInit.sql:/docker-entrypoint-initdb.d/DraftInit.sql:ro
 
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d draft"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d drafts"]
       interval: 5s
       timeout: 5s
       retries: 10
+
+
+  # ============================================================
+  # Observability - Seq
+  # ============================================================
+
+  seq:
+    image: datalust/seq:latest
+
+    container_name: happy-headlines-seq
+
+    environment:
+      ACCEPT_EULA: "Y"
+
+      # Development only.
+      # Allows access to Seq without configuring authentication.
+      SEQ_FIRSTRUN_NOAUTHENTICATION: "True"
+
+    ports:
+      # Seq web interface
+      - "5341:80"
+
+    volumes:
+      - seq-data:/data
+
+
+  # ============================================================
+  # Observability - Zipkin
+  # ============================================================
+
+  zipkin:
+    image: ghcr.io/openzipkin-contrib/zipkin-otel:latest
+
+    container_name: happy-headlines-zipkin
+
+    ports:
+      # Zipkin UI + OTLP HTTP endpoint
+      - "9411:9411"
+
 
 # ============================================================
 # Persistent volumes
 # ============================================================
 
 volumes:
+
+  # Article databases
   article-africa-data:
   article-antarctica-data:
   article-asia-data:
@@ -316,6 +391,14 @@ volumes:
   article-oceania-data:
   article-global-data:
 
+  # Comment database
   comment-data:
+
+  # Profanity database
   profanity-data:
+
+  # Draft database
   draft-data:
+
+  # Seq
+  seq-data:

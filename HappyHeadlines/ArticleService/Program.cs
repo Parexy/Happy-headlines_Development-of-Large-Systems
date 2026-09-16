@@ -43,6 +43,11 @@ app.UseSwaggerUI(options =>
     options.SwaggerEndpoint(
         "/openapi/profanity.json",
         "Profanity Service");
+
+    options.SwaggerEndpoint(
+        "/openapi/draft.json",
+        "Draft Service");
+
 });
 
 app.MapControllers();

@@ -1,5 +1,7 @@
 using System.Text.Json.Serialization;
 using ArticleService.Data;
+using ArticleService.Messaging;
+using Messaging.RabbitMq;
 using Observability;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -19,6 +21,12 @@ builder.Services
 builder.Services.AddSingleton<
     IArticleDbContextFactory,
     ArticleDbContextFactory>();
+
+builder.Services.AddSingleton<RabbitMqConnection>();
+builder.Services.AddSingleton<RabbitMqConsumer>();
+
+builder.Services.AddHostedService<
+    ArticlePublishedConsumer>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -51,7 +59,7 @@ app.UseSwaggerUI(options =>
     options.SwaggerEndpoint(
         "/openapi/newsletter.json",
         "Newsletter Service");
-        
+
     options.SwaggerEndpoint(
         "/openapi/publisher.json",
         "Publisher Service");

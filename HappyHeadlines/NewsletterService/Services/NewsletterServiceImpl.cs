@@ -2,11 +2,11 @@ using NewsletterService.DTOs;
 
 namespace NewsletterService.Services;
 
-public class NewsletterService : INewsletterService
+public class NewsletterServiceImpl : INewsletterService
 {
     private readonly HttpClient _httpClient;
 
-    public NewsletterService(HttpClient httpClient)
+    public NewsletterServiceImpl(HttpClient httpClient)
     {
         _httpClient = httpClient;
     }

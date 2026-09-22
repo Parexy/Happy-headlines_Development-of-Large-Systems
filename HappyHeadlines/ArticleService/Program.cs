@@ -47,6 +47,14 @@ app.UseSwaggerUI(options =>
     options.SwaggerEndpoint(
         "/openapi/draft.json",
         "Draft Service");
+
+    options.SwaggerEndpoint(
+        "/openapi/newsletter.json",
+        "Newsletter Service");
+        
+    options.SwaggerEndpoint(
+        "/openapi/publisher.json",
+        "Publisher Service");
 });
 
 app.MapControllers();

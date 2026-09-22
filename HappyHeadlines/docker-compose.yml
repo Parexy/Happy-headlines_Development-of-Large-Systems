@@ -103,7 +103,7 @@ services:
     image: nginx:alpine
 
     ports:
-      - "9000:80"
+      - "9200:80"
 
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
@@ -383,6 +383,7 @@ services:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:8080
 
+      # Direct service-to-service communication for daily newsletters.
       ArticleService__BaseUrl: "http://article-load-balancer"
 
     depends_on:

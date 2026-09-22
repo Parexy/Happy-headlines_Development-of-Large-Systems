@@ -1,15 +1,23 @@
+using Messaging.RabbitMq;
+using NewsletterService.Messaging;
+using NewsletterService.Services;
 using Observability;
 using NewsletterService.Services;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Shared logging + tracing.
-// Logs -> Seq
-// Traces -> Zipkin
 builder.AddObservability();
 
-// Add services to the container.
+builder.Services.AddHttpClient<
+    INewsletterService,
+    NewsletterService.Services.NewsletterService>(
+        client =>
+        {
+            client.BaseAddress = new Uri(
+                builder.Configuration["ArticleService:BaseUrl"]
+                ?? "http://article-load-balancer");
+        });
 
 builder.Services
     .AddControllers()
@@ -19,23 +27,17 @@ builder.Services
             new JsonStringEnumConverter());
     });
 
-builder.Services.AddHttpClient<INewsletterService, NewsletterServiceImpl>(
-    client =>
-    {
-        var baseUrl =
-            builder.Configuration["ArticleService:BaseUrl"]
-            ?? throw new InvalidOperationException(
-                "ArticleService:BaseUrl is missing.");
+builder.Services.AddSingleton<RabbitMqConnection>();
+builder.Services.AddSingleton<RabbitMqConsumer>();
 
-        client.BaseAddress = new Uri(baseUrl);
-    });
+builder.Services.AddHostedService<
+    ArticlePublishedConsumer>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// Serilog request logging.
 app.UseObservability();
 
 app.UseSwagger();

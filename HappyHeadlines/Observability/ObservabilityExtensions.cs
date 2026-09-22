@@ -2,6 +2,8 @@
 using System.Reflection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
+using OpenTelemetry;
+using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Exporter;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
@@ -59,6 +61,13 @@ public static class ObservabilityExtensions
 
         Activity.ForceDefaultIdFormat = true;
 
+        Sdk.SetDefaultTextMapPropagator(
+            new CompositeTextMapPropagator(
+            [
+                new TraceContextPropagator(),
+                new BaggagePropagator()
+            ]));
+
         builder.Services
             .AddOpenTelemetry()
             .ConfigureResource(resource =>
@@ -70,11 +79,10 @@ public static class ObservabilityExtensions
             .WithTracing(tracing =>
             {
                 tracing
-                    .AddSource(
-                        HappyHeadlinesActivitySource.Name)
                     .AddAspNetCoreInstrumentation()
                     .AddHttpClientInstrumentation()
                     .AddEntityFrameworkCoreInstrumentation()
+                    .AddRabbitMQInstrumentation()
                     .AddOtlpExporter(options =>
                     {
                         options.Endpoint =
@@ -88,7 +96,6 @@ public static class ObservabilityExtensions
         return builder;
     }
 
-
     public static WebApplication UseObservability(
         this WebApplication app)
     {
@@ -96,22 +103,4 @@ public static class ObservabilityExtensions
 
         return app;
     }
-}
-
-
-// ============================================================
-// Shared ActivitySource
-// ============================================================
-//
-// Used for custom spans that are not created automatically,
-// such as RabbitMQ publish and consume operations.
-// ============================================================
-
-public static class HappyHeadlinesActivitySource
-{
-    public const string Name =
-        "HappyHeadlines.Messaging";
-
-    public static readonly ActivitySource Source =
-        new(Name);
 }

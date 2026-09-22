@@ -4,16 +4,22 @@
     <File Path="database/CommentInit.sql" />
     <File Path="database/ProfanityInit.sql" />
   </Folder>
+
   <Folder Name="/nginx/">
     <File Path="nginx/nginx.conf" />
   </Folder>
+
   <Folder Name="/Solution Items/">
     <File Path="docker-compose.yml" />
   </Folder>
+  <Project Path="ArticleService.Core/ArticleService.Core.csproj" />
+
   <Project Path="ArticleService/ArticleService.csproj" />
   <Project Path="CommentService/CommentService.csproj" Id="7e37e1bd-3872-4b0e-ae88-f0261d564dd7" />
   <Project Path="DraftService/DraftService.csproj" />
   <Project Path="Messaging/Messaging.csproj" />
+  <Project Path="NewsletterService/NewsletterService.csproj" />
   <Project Path="Observability/Observability.csproj" Id="b0a663e5-536c-436f-a6a5-f05aa9e30e22" />
   <Project Path="ProfanityService/ProfanityService.csproj" Id="b3408910-cad6-4850-90a0-85f8bf20bbf0" />
+  <Project Path="PublisherService/PublisherService.csproj" />
 </Solution>

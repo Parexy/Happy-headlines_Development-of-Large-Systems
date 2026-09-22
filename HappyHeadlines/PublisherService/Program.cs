@@ -1,16 +1,13 @@
 using Observability;
+using PublisherService.Messaging;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
-
-// Add services to the container.
 
 // Shared logging + tracing.
 // Logs -> Seq
 // Traces -> Zipkin
 builder.AddObservability();
-
-// Add services to the container.
 
 builder.Services
     .AddControllers()
@@ -19,6 +16,10 @@ builder.Services
         options.JsonSerializerOptions.Converters.Add(
             new JsonStringEnumConverter());
     });
+
+builder.Services.AddSingleton<
+    IArticlePublisher,
+    RabbitMqArticlePublisher>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

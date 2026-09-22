@@ -1,9 +1,8 @@
-using PublisherService.DTOs;
+using NewsletterService.DTOs;
 
-namespace PublisherService.Services;
+namespace NewsletterService.Services;
 
-public interface IPublisherService
+public interface INewsletterService
 {
-    Task<PublishArticleDto> PublishArticle(
-        PublishArticleDto article);
+    Task<NewsletterDto> CreateDailyNewsletter();
 }

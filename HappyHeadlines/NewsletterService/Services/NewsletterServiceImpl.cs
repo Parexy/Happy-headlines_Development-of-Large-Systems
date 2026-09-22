@@ -1,35 +1,36 @@
-using Messaging;
-using Messaging.Events;
-using Messaging.RabbitMq;
-using PublisherService.DTOs;
+using NewsletterService.DTOs;
 
-namespace PublisherService.Services;
+namespace NewsletterService.Services;
 
-public class PublisherServiceImpl : IPublisherService
+public class NewsletterServiceImpl : INewsletterService
 {
-    private readonly RabbitMqPublisher _publisher;
+    private readonly HttpClient _httpClient;
 
-    public PublisherServiceImpl(
-        RabbitMqPublisher publisher)
+    public NewsletterServiceImpl(HttpClient httpClient)
     {
-        _publisher = publisher;
+        _httpClient = httpClient;
     }
 
-    public async Task<PublishArticleDto> PublishArticle(
-        PublishArticleDto article)
+    public async Task<NewsletterDto> CreateDailyNewsletter()
     {
-        var articlePublished =
-            new ArticlePublished(
-                article.Title,
-                article.Content,
-                article.Author,
-                article.Region,
-                DateTimeOffset.UtcNow);
+        var articles =
+            await _httpClient.GetFromJsonAsync<List<ArticleDto>>(
+                "/api/articles/latest");
 
-        await _publisher.PublishAsync(
-            ArticleMessaging.Exchange,
-            articlePublished);
+        if (articles == null)
+        {
+            articles = [];
+        }
 
-        return article;
+        var newsletter = new NewsletterDto
+        {
+            Id = Guid.NewGuid(),
+            CreatedAt = DateTime.UtcNow,
+            Articles = articles
+        };
+
+        // Send newsletter here later.
+
+        return newsletter;
     }
 }

@@ -1,5 +1,7 @@
+using Messaging.RabbitMq;
 using Observability;
 using PublisherService.Messaging;
+using PublisherService.Services;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -17,9 +19,12 @@ builder.Services
             new JsonStringEnumConverter());
     });
 
-builder.Services.AddSingleton<
-    IArticlePublisher,
-    RabbitMqArticlePublisher>();
+builder.Services.AddSingleton<RabbitMqConnection>();
+builder.Services.AddSingleton<RabbitMqPublisher>();
+
+builder.Services.AddScoped<
+    IPublisherService,
+    PublisherServiceImpl>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

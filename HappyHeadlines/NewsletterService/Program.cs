@@ -19,7 +19,16 @@ builder.Services
             new JsonStringEnumConverter());
     });
 
-builder.Services.AddHttpClient<INewsletterService, NewsletterServiceImpl>();
+builder.Services.AddHttpClient<INewsletterService, NewsletterServiceImpl>(
+    client =>
+    {
+        var baseUrl =
+            builder.Configuration["ArticleService:BaseUrl"]
+            ?? throw new InvalidOperationException(
+                "ArticleService:BaseUrl is missing.");
+
+        client.BaseAddress = new Uri(baseUrl);
+    });
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

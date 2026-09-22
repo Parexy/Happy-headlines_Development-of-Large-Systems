@@ -383,6 +383,8 @@ services:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:8080
 
+      ArticleService__BaseUrl: "http://article-load-balancer"
+
     depends_on:
       rabbitmq:
         condition: service_healthy

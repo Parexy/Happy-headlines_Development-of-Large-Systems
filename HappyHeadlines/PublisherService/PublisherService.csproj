@@ -21,6 +21,7 @@
 
   <ItemGroup>
 	  <ProjectReference Include="..\Observability\Observability.csproj" />
-	</ItemGroup>
+      <ProjectReference Include="..\Messaging\Messaging.csproj" />
+  </ItemGroup>
 
 </Project>

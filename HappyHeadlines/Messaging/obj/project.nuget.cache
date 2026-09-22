@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "N4a6iftF9ig=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\Parexy\\Desktop\\Happy headlines - Development of Large Systems\\HappyHeadlines\\Messaging\\Messaging.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Parexy\\.nuget\\packages\\rabbitmq.client\\7.2.2\\rabbitmq.client.7.2.2.nupkg.sha512",
+    "C:\\Users\\Parexy\\.nuget\\packages\\system.threading.ratelimiting\\8.0.0\\system.threading.ratelimiting.8.0.0.nupkg.sha512"
+  ],
+  "logs": []
+}

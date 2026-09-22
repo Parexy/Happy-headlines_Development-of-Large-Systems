@@ -100,6 +100,8 @@ services:
       - comment-service
       - profanity-service
       - draft-service
+      - newsletter-service
+      - publisher-service
 
 
   # ============================================================
@@ -326,6 +328,36 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+
+  # ============================================================
+  # NewsletterService
+  # ============================================================
+
+  newsletter-service:
+    build:
+      context: .
+      dockerfile: NewsletterService/Dockerfile
+
+    environment:
+      <<: *observability
+
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+
+  # ============================================================
+  # PublisherService
+  # ============================================================
+
+  publisher-service:
+    build:
+      context: .
+      dockerfile: PublisherService/Dockerfile
+
+    environment:
+      <<: *observability
+
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
 
 
   # ============================================================

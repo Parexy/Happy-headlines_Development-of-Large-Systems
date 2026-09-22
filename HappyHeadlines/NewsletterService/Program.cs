@@ -1,4 +1,3 @@
-using NewsletterService.Data;
 using Observability;
 using System.Text.Json.Serialization;
 
@@ -18,10 +17,6 @@ builder.Services
         options.JsonSerializerOptions.Converters.Add(
             new JsonStringEnumConverter());
     });
-
-builder.Services.AddSingleton<
-    INewsletterDbContextFactory,
-    NewsletterDbContextFactory>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

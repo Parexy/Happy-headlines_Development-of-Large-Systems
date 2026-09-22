@@ -12,10 +12,10 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["PublisherService.csproj", "."]
-RUN dotnet restore "./PublisherService.csproj"
+COPY ["PublisherService/PublisherService.csproj", "PublisherService/"]
+RUN dotnet restore "./PublisherService/PublisherService.csproj"
 COPY . .
-WORKDIR "/src/."
+WORKDIR "/src/PublisherService"
 RUN dotnet build "./PublisherService.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 # This stage is used to publish the service project to be copied to the final stage

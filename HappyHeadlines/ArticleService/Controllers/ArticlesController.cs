@@ -81,6 +81,18 @@ public class ArticlesController : ControllerBase
         return Ok(ToResponse(article, region));
     }
 
+    [HttpGet("latest")]
+    public async Task<ActionResult<IEnumerable<Article>>> GetLatest()
+    {
+        await using var db = _dbContextFactory.Create(ArticleRegion.Global);
+
+        var articles = await db.Articles
+            .OrderByDescending(a => a.CreatedAt)
+            .Take(20)
+            .ToListAsync();
+
+        return Ok(articles);
+    }
 
     // UPDATE
     // PUT /api/articles/Europe/1

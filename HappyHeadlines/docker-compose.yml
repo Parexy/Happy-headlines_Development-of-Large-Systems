@@ -345,21 +345,6 @@ services:
       retries: 10
 
   # ============================================================
-  # NewsletterService
-  # ============================================================
-
-  newsletter-service:
-    build:
-      context: .
-      dockerfile: NewsletterService/Dockerfile
-
-    environment:
-      <<: *observability
-
-      ASPNETCORE_ENVIRONMENT: Development
-      ASPNETCORE_URLS: http://+:8080
-
-  # ============================================================
   # PublisherService
   # ============================================================
 

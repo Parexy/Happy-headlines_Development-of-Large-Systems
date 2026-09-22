@@ -10,6 +10,8 @@ public class PublishArticleDto
 
     public string Author { get; set; } = string.Empty;
 
+    public string Region { get; set; } = string.Empty;
+
     public DateTime CreatedAt { get; set; }
 
     public DateTime PublishedAt { get; set; }

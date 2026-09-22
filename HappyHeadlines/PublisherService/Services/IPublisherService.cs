@@ -4,5 +4,6 @@ namespace PublisherService.Services;
 
 public interface IPublisherService
 {
-    Task<PublishArticleDto> PublishArticle(PublishArticleDto article);
+    Task<PublishArticleDto> PublishArticle(
+        PublishArticleDto article);
 }

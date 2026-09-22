@@ -10,14 +10,16 @@ public class PublisherController : ControllerBase
 {
     private readonly IPublisherService _publisherService;
 
-    public PublisherController(IPublisherService publisherService)
+    public PublisherController(
+        IPublisherService publisherService)
     {
         _publisherService = publisherService;
     }
 
     [HttpPost]
-    public async Task<ActionResult<PublishArticleDto>> PublishArticle(
-        PublishArticleDto article)
+    public async Task<ActionResult<PublishArticleDto>>
+        PublishArticle(
+            PublishArticleDto article)
     {
         var publishedArticle =
             await _publisherService.PublishArticle(article);

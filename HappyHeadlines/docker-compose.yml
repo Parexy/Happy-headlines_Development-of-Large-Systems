@@ -8,7 +8,17 @@
 # "seq" and "zipkin".
 x-observability: &observability
   Observability__SeqUrl: "http://seq:5341"
-  Observability__ZipkinUrl: "http://zipkin:9411/v1/traces"
+  Observability__OtlpEndpoint: "http://zipkin:9411/v1/traces"
+
+
+# Shared RabbitMQ configuration used by services that publish or consume messages.
+#
+# Docker Compose provides DNS using the service name "rabbitmq".
+x-rabbitmq: &rabbitmq
+  RabbitMq__Host: "rabbitmq"
+  RabbitMq__Port: "5672"
+  RabbitMq__UserName: "happy"
+  RabbitMq__Password: "headlines"
 
 
 # Shared configuration for all ArticleService instances.
@@ -18,7 +28,9 @@ x-article-service: &article-service
     dockerfile: ArticleService/Dockerfile
 
   environment:
-    <<: *observability
+    <<:
+      - *observability
+      - *rabbitmq
 
     ASPNETCORE_ENVIRONMENT: Development
     ASPNETCORE_URLS: http://+:8080
@@ -33,6 +45,9 @@ x-article-service: &article-service
     ConnectionStrings__Global: "Host=article-db-global;Database=articles;Username=postgres;Password=postgres"
 
   depends_on:
+    rabbitmq:
+      condition: service_healthy
+
     article-db-africa:
       condition: service_healthy
 
@@ -354,10 +369,38 @@ services:
       dockerfile: PublisherService/Dockerfile
 
     environment:
-      <<: *observability
+      <<:
+        - *observability
+        - *rabbitmq
 
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: http://+:8080
+
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+
+  # ============================================================
+  # NewsletterService
+  # ============================================================
+
+  newsletter-service:
+    build:
+      context: .
+      dockerfile: NewsletterService/Dockerfile
+
+    environment:
+      <<:
+        - *observability
+        - *rabbitmq
+
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
 
 
   # ============================================================
@@ -395,6 +438,30 @@ services:
     ports:
       # Zipkin UI + OTLP HTTP endpoint
       - "9411:9411"
+
+
+  # ============================================================
+  # Queue broker - RabbitMQ
+  # ============================================================
+
+  rabbitmq:
+    image: rabbitmq:4-management
+    container_name: happy-headlines-rabbitmq
+    hostname: rabbitmq
+
+    environment:
+      RABBITMQ_DEFAULT_USER: happy
+      RABBITMQ_DEFAULT_PASS: headlines
+
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 
 # ============================================================

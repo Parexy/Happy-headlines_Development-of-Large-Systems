@@ -4,6 +4,7 @@ using Observability;
 using Polly;
 using Polly.CircuitBreaker;
 using Polly.Registry;
+using Prometheus;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -70,6 +71,10 @@ app.UseObservability();
 
 app.UseSwagger();
 app.UseSwaggerUI();
+
+// Prometheus metrics endpoint.
+app.UseHttpMetrics();
+app.MapMetrics();
 
 app.MapControllers();
 

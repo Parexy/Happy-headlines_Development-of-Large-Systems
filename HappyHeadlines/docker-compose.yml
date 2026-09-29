@@ -427,6 +427,42 @@ services:
       # Zipkin UI + OTLP HTTP endpoint
       - "9411:9411"
 
+  # ============================================================
+  # Observability - Prometheus
+  # ============================================================
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: happy-headlines-prometheus
+
+    ports:
+      - "9090:9090"
+
+    volumes:
+      - ./Prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+
+    depends_on:
+      - article-service-1
+      - article-service-2
+      - article-service-3
+
+
+  # ============================================================
+  # Observability - Grafana
+  # ============================================================
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: happy-headlines-grafana
+
+    ports:
+      - "3000:3000"
+
+    volumes:
+      - grafana-data:/var/lib/grafana
+
+    depends_on:
+      - prometheus
 
   # ============================================================
   # Queue broker - RabbitMQ
@@ -479,3 +515,6 @@ volumes:
 
   # Seq
   seq-data:
+
+  # Grafana
+  grafana-data:

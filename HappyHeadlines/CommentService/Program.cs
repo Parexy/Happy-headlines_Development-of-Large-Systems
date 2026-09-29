@@ -6,7 +6,6 @@ using Polly.CircuitBreaker;
 using Polly.Registry;
 using Prometheus;
 using CommentService.Caching;
-using CommentService.Metrics;
 using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -93,8 +92,6 @@ builder.Services.AddSingleton<
     ICommentCache,
     RedisCommentCache>();
 
-builder.Services.AddSingleton<CommentCacheMetrics>();
-
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -105,10 +102,6 @@ app.UseObservability();
 
 app.UseSwagger();
 app.UseSwaggerUI();
-
-// Prometheus metrics endpoint.
-app.UseHttpMetrics();
-app.MapMetrics();
 
 app.MapControllers();
 

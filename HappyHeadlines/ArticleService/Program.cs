@@ -1,7 +1,6 @@
 using System.Text.Json.Serialization;
 using ArticleService.Data;
 using ArticleService.Messaging;
-using ArticleService.Metrics;
 using Messaging.RabbitMq;
 using Observability;
 using Prometheus;
@@ -56,7 +55,6 @@ builder.Services.AddSingleton<IConnectionMultiplexer>(_ =>
 builder.Services.AddSingleton<
     IArticleCache,
     RedisArticleCache>();
-builder.Services.AddSingleton<ArticleCacheMetrics>();
 
 builder.Services.AddHostedService<
     ArticleCacheWarmupService>();
@@ -97,10 +95,6 @@ app.UseSwaggerUI(options =>
         "/openapi/publisher.json",
         "Publisher Service");
 });
-
-// Prometheus metrics endpoint.
-app.UseHttpMetrics();
-app.MapMetrics();
 
 app.MapControllers();
 

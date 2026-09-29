@@ -444,7 +444,7 @@ services:
       - "9090:9090"
 
     volumes:
-      - ./Prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./Observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
 
     depends_on:
       - article-service-1

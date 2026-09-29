@@ -50,9 +50,6 @@ x-article-service: &article-service
     rabbitmq:
       condition: service_healthy
 
-    article-cache:
-      condition: service_healthy
-
     article-db-africa:
       condition: service_healthy
 
@@ -231,9 +228,6 @@ services:
 
     depends_on:
       comment-db:
-        condition: service_healthy
-
-      comment-cache:
         condition: service_healthy
 
     # Deliberately no depends_on for profanity-service.

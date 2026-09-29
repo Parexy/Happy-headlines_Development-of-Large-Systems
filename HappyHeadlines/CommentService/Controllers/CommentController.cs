@@ -1,8 +1,10 @@
+using CommentService.Caching;
 using CommentService.Data;
 using CommentService.DTOs;
 using CommentService.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Observability;
 using Polly.CircuitBreaker;
 
 namespace CommentService.Controllers
@@ -13,13 +15,16 @@ namespace CommentService.Controllers
     {
         private readonly CommentDbContext _db;
         private readonly IProfanityServiceClient _profanityServiceClient;
+        private readonly ICommentCache _commentCache;
 
         public CommentController(
             CommentDbContext db,
-            IProfanityServiceClient profanityServiceClient)
+            IProfanityServiceClient profanityServiceClient,
+            ICommentCache commentCache)
         {
             _db = db;
             _profanityServiceClient = profanityServiceClient;
+            _commentCache = commentCache;
         }
 
 
@@ -49,6 +54,43 @@ namespace CommentService.Controllers
             }
 
             return Ok(comment);
+        }
+
+
+        // GET /api/comments/article/{articleId}
+        [HttpGet("article/{articleId:int}")]
+        public async Task<ActionResult<IEnumerable<Comment>>> GetForArticle(
+            int articleId,
+            CancellationToken cancellationToken)
+        {
+            // First try the cache.
+            var cachedComments =
+                await _commentCache.GetAsync(articleId);
+
+            if (cachedComments != null)
+            {
+                CacheMetrics.RecordHit("comment");
+
+                return Ok(cachedComments);
+            }
+
+            CacheMetrics.RecordMiss("comment");
+
+            // Cache miss -> get comments from database.
+            var comments = await _db.Comments
+                .AsNoTracking()
+                .Where(comment =>
+                    comment.ArticleId == articleId)
+                .OrderBy(comment =>
+                    comment.CreatedAt)
+                .ToListAsync(cancellationToken);
+
+            // Store the complete comment list for this article.
+            await _commentCache.SetAsync(
+                articleId,
+                comments);
+
+            return Ok(comments);
         }
 
 
@@ -98,6 +140,12 @@ namespace CommentService.Controllers
 
             await _db.SaveChangesAsync(cancellationToken);
 
+            // The cached list is now stale.
+            // Remove it so the next request reloads it
+            // from the database.
+            await _commentCache.RemoveAsync(
+                comment.ArticleId);
+
             return CreatedAtAction(
                 nameof(Get),
                 new { id = comment.Id },
@@ -121,9 +169,16 @@ namespace CommentService.Controllers
                 return NotFound("Comment not found.");
             }
 
+            // Save the article ID before deleting the comment.
+            var articleId = comment.ArticleId;
+
             _db.Comments.Remove(comment);
 
             await _db.SaveChangesAsync(cancellationToken);
+
+            // The cached comment list for this article
+            // is now stale.
+            await _commentCache.RemoveAsync(articleId);
 
             return NoContent();
         }

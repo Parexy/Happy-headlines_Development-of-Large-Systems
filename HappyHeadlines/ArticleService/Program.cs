@@ -5,7 +5,8 @@ using ArticleService.Metrics;
 using Messaging.RabbitMq;
 using Observability;
 using Prometheus;
-
+using ArticleService.Caching;
+using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,6 +31,26 @@ builder.Services.AddSingleton<RabbitMqConsumer>();
 
 builder.Services.AddHostedService<
     ArticlePublishedConsumer>();
+
+builder.Services.AddSingleton<IConnectionMultiplexer>(_ =>
+{
+    var connectionString =
+        builder.Configuration[
+            "ArticleCache:ConnectionString"]
+        ?? throw new InvalidOperationException(
+            "ArticleCache:ConnectionString is missing.");
+
+    return ConnectionMultiplexer.Connect(
+        connectionString);
+});
+
+builder.Services.AddSingleton<
+    IArticleCache,
+    RedisArticleCache>();
+builder.Services.AddSingleton<ArticleCacheMetrics>();
+
+builder.Services.AddHostedService<
+    ArticleCacheWarmupService>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

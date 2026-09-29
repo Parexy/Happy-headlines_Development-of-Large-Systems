@@ -5,6 +5,9 @@ using Polly;
 using Polly.CircuitBreaker;
 using Polly.Registry;
 using Prometheus;
+using CommentService.Caching;
+using CommentService.Metrics;
+using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -60,6 +63,24 @@ builder.Services.AddResiliencePipeline<string, HttpResponseMessage>(
                 BreakDuration = TimeSpan.FromSeconds(30)
             });
     });
+
+builder.Services.AddSingleton<IConnectionMultiplexer>(_ =>
+{
+    var connectionString =
+        builder.Configuration[
+            "CommentCache:ConnectionString"]
+        ?? throw new InvalidOperationException(
+            "CommentCache:ConnectionString is missing.");
+
+    return ConnectionMultiplexer.Connect(
+        connectionString);
+});
+
+builder.Services.AddSingleton<
+    ICommentCache,
+    RedisCommentCache>();
+
+builder.Services.AddSingleton<CommentCacheMetrics>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

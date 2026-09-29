@@ -450,6 +450,7 @@ services:
       - article-service-1
       - article-service-2
       - article-service-3
+      - comment-service
 
 
   # ============================================================

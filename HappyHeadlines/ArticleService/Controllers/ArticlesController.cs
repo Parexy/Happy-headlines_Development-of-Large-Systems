@@ -1,8 +1,10 @@
+using ArticleService.Caching;
 using ArticleService.Data;
 using ArticleService.DTOs;
 using ArticleService.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Observability;
 
 namespace ArticleService.Controllers;
 
@@ -11,10 +13,14 @@ namespace ArticleService.Controllers;
 public class ArticlesController : ControllerBase
 {
     private readonly IArticleDbContextFactory _dbContextFactory;
+    private readonly IArticleCache _articleCache;
 
-    public ArticlesController(IArticleDbContextFactory dbContextFactory)
+    public ArticlesController(
+        IArticleDbContextFactory dbContextFactory,
+        IArticleCache articleCache)
     {
         _dbContextFactory = dbContextFactory;
+        _articleCache = articleCache;
     }
 
 
@@ -64,21 +70,47 @@ public class ArticlesController : ControllerBase
     [HttpGet("{region}/{id:int}")]
     public async Task<ActionResult<ArticleResponse>> Get(
         ArticleRegion region,
-        int id)
+        int id,
+        CancellationToken cancellationToken)
     {
+        if (region == ArticleRegion.Global)
+        {
+            var cachedArticle =
+                await _articleCache.GetAsync(
+                    id,
+                    cancellationToken);
+
+            if (cachedArticle != null)
+            {
+                CacheMetrics.RecordHit("article");
+
+                return Ok(
+                    ToResponse(
+                        cachedArticle,
+                        region));
+            }
+
+            CacheMetrics.RecordMiss("article");
+        }
+
         await using var db =
             _dbContextFactory.Create(region);
 
         var article = await db.Articles
             .AsNoTracking()
-            .FirstOrDefaultAsync(a => a.Id == id);
+            .FirstOrDefaultAsync(
+                article => article.Id == id,
+                cancellationToken);
 
         if (article == null)
         {
             return NotFound();
         }
 
-        return Ok(ToResponse(article, region));
+        return Ok(
+            ToResponse(
+                article,
+                region));
     }
 
     [HttpGet("latest")]

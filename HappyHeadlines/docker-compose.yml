@@ -44,6 +44,8 @@ x-article-service: &article-service
     ConnectionStrings__Oceania: "Host=article-db-oceania;Database=articles;Username=postgres;Password=postgres"
     ConnectionStrings__Global: "Host=article-db-global;Database=articles;Username=postgres;Password=postgres"
 
+    ArticleCache__ConnectionString: "article-cache:6379"
+
   depends_on:
     rabbitmq:
       condition: service_healthy
@@ -217,6 +219,8 @@ services:
       ASPNETCORE_URLS: http://+:8080
 
       ConnectionStrings__DefaultConnection: "Host=comment-db;Database=comments;Username=postgres;Password=postgres"
+
+      CommentCache__ConnectionString: "comment-cache:6379"
 
       # Direct service-to-service communication.
       ProfanityService__BaseUrl: "http://profanity-service:8080"
@@ -450,6 +454,26 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  # ============================================================
+  # Cache - Redis
+  # ============================================================
+
+  article-cache:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  comment-cache:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
 
 
 # ============================================================

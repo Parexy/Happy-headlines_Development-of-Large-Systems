@@ -221,6 +221,7 @@ services:
       ConnectionStrings__DefaultConnection: "Host=comment-db;Database=comments;Username=postgres;Password=postgres"
 
       CommentCache__ConnectionString: "comment-cache:6379"
+      CommentCache__MaxArticles: "30"
 
       # Direct service-to-service communication.
       ProfanityService__BaseUrl: "http://profanity-service:8080"

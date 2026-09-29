@@ -7,7 +7,9 @@ using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Exporter;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+using OpenTelemetry.Metrics;
 using Serilog;
+
 
 namespace Observability;
 
@@ -91,6 +93,13 @@ public static class ObservabilityExtensions
                         options.Protocol =
                             OtlpExportProtocol.HttpProtobuf;
                     });
+            })
+            .WithMetrics(metrics =>
+            {
+                metrics
+                    .AddMeter(CacheMetrics.MeterName)
+                    .AddAspNetCoreInstrumentation()
+                    .AddPrometheusExporter();
             });
 
         return builder;
@@ -100,6 +109,8 @@ public static class ObservabilityExtensions
         this WebApplication app)
     {
         app.UseSerilogRequestLogging();
+
+        app.MapPrometheusScrapingEndpoint();
 
         return app;
     }

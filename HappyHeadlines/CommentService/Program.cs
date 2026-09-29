@@ -64,6 +64,10 @@ builder.Services.AddResiliencePipeline<string, HttpResponseMessage>(
             });
     });
 
+builder.Services.Configure<CommentCacheOptions>(
+    builder.Configuration.GetSection(
+        CommentCacheOptions.SectionName));
+
 builder.Services.AddSingleton<IConnectionMultiplexer>(_ =>
 {
     var connectionString =
@@ -72,8 +76,17 @@ builder.Services.AddSingleton<IConnectionMultiplexer>(_ =>
         ?? throw new InvalidOperationException(
             "CommentCache:ConnectionString is missing.");
 
-    return ConnectionMultiplexer.Connect(
-        connectionString);
+    var options =
+        ConfigurationOptions.Parse(connectionString);
+
+    // Do not fail application startup if Redis
+    // is temporarily unavailable.
+    options.AbortOnConnectFail = false;
+
+    options.ConnectRetry = 3;
+    options.ConnectTimeout = 3000;
+
+    return ConnectionMultiplexer.Connect(options);
 });
 
 builder.Services.AddSingleton<

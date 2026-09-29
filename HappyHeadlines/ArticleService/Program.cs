@@ -40,8 +40,17 @@ builder.Services.AddSingleton<IConnectionMultiplexer>(_ =>
         ?? throw new InvalidOperationException(
             "ArticleCache:ConnectionString is missing.");
 
-    return ConnectionMultiplexer.Connect(
-        connectionString);
+    var options =
+        ConfigurationOptions.Parse(connectionString);
+
+    // ArticleService must still start when Redis
+    // is unavailable.
+    options.AbortOnConnectFail = false;
+
+    options.ConnectRetry = 3;
+    options.ConnectTimeout = 3000;
+
+    return ConnectionMultiplexer.Connect(options);
 });
 
 builder.Services.AddSingleton<

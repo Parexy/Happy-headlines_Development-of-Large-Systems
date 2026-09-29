@@ -50,6 +50,9 @@ x-article-service: &article-service
     rabbitmq:
       condition: service_healthy
 
+    article-cache:
+      condition: service_healthy
+
     article-db-africa:
       condition: service_healthy
 
@@ -221,12 +224,16 @@ services:
       ConnectionStrings__DefaultConnection: "Host=comment-db;Database=comments;Username=postgres;Password=postgres"
 
       CommentCache__ConnectionString: "comment-cache:6379"
+      CommentCache__MaxArticles: "30"
 
       # Direct service-to-service communication.
       ProfanityService__BaseUrl: "http://profanity-service:8080"
 
     depends_on:
       comment-db:
+        condition: service_healthy
+
+      comment-cache:
         condition: service_healthy
 
     # Deliberately no depends_on for profanity-service.

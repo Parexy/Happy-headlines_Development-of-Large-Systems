@@ -153,6 +153,11 @@ public class ArticlesController : ControllerBase
 
         await db.SaveChangesAsync();
 
+        if (region == ArticleRegion.Global)
+        {
+            await _articleCache.RemoveAsync(id);
+        }
+
         return Ok(ToResponse(article, region));
     }
 
@@ -178,6 +183,11 @@ public class ArticlesController : ControllerBase
         db.Articles.Remove(article);
 
         await db.SaveChangesAsync();
+
+        if (region == ArticleRegion.Global)
+        {
+            await _articleCache.RemoveAsync(id);
+        }
 
         return NoContent();
     }

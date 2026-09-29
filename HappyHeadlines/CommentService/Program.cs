@@ -62,6 +62,10 @@ builder.Services.AddResiliencePipeline<string, HttpResponseMessage>(
             });
     });
 
+builder.Services.Configure<CommentCacheOptions>(
+    builder.Configuration.GetSection(
+        CommentCacheOptions.SectionName));
+
 builder.Services.AddSingleton<IConnectionMultiplexer>(_ =>
 {
     var connectionString =

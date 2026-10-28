@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace SubscriberService.Models;
 
 public class RemoveSubscriberRequest

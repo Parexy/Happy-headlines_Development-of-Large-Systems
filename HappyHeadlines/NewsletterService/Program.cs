@@ -4,6 +4,7 @@ using NewsletterService.Services;
 using NewsletterService.Clients;
 using Observability;
 using System.Text.Json.Serialization;
+using Microsoft.Extensions.Http.Resilience;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -55,8 +56,7 @@ builder.Services
         options.AttemptTimeout.Timeout =
             TimeSpan.FromSeconds(2);
 
-        // Disable retries.
-        options.Retry.MaxRetryAttempts = 0;
+        options.Retry.MaxRetryAttempts = 1;
 
         // Circuit breaker.
         options.CircuitBreaker.FailureRatio = 0.5;

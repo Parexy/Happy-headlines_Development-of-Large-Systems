@@ -397,6 +397,55 @@ services:
 
 
   # ============================================================
+  # SubscriberService
+  # ============================================================
+
+  subscriber-service:
+    build:
+      context: .
+      dockerfile: SubscriberService/Dockerfile
+
+    environment:
+      <<:
+        - *observability
+        - *rabbitmq
+
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_URLS: http://+:8080
+
+      ConnectionStrings__DefaultConnection: "Host=subscriber-db;Database=subscribers;Username=postgres;Password=postgres"
+
+    ports:
+      - "127.0.0.1:9201:8080"
+
+    depends_on:
+      subscriber-db:
+        condition: service_healthy
+
+  # ============================================================
+  # SubscriberDatabase
+  # ============================================================
+
+  subscriber-db:
+    image: postgres:17
+
+    environment:
+      POSTGRES_DB: subscribers
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+
+    volumes:
+      - subscriber-data:/var/lib/postgresql/data
+      - ./database/SubscriberInit.sql:/docker-entrypoint-initdb.d/SubscriberInit.sql:ro
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d subscribers"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+
+  # ============================================================
   # Observability - Seq
   # ============================================================
 
@@ -539,6 +588,9 @@ volumes:
 
   # Draft database
   draft-data:
+
+  # Subscriber database
+  subscriber-data:
 
   # Seq
   seq-data:

@@ -1,3 +1,4 @@
+
 using System.Text.Json.Serialization;
 using ArticleService.Data;
 using ArticleService.Messaging;
@@ -94,6 +95,10 @@ app.UseSwaggerUI(options =>
     options.SwaggerEndpoint(
         "/openapi/publisher.json",
         "Publisher Service");
+
+    options.SwaggerEndpoint(
+        "/openapi/subscriber.json",
+        "Subscriber Service");
 });
 
 app.MapControllers();

@@ -74,4 +74,24 @@ public sealed class SubscribersController : ControllerBase
 
         return NoContent();
     }
+
+    [HttpGet]
+    public async Task<IActionResult> GetAll(
+        CancellationToken cancellationToken)
+    {
+        await using var dbContext = _dbContextFactory.Create();
+
+        var subscribers = await dbContext.Subscribers
+            .AsNoTracking()
+            .Select(s => new
+            {
+                s.Id,
+                s.Email,
+                s.CreatedAt
+            })
+            .ToListAsync(cancellationToken);
+
+        return Ok(subscribers);
+    }
+
 }

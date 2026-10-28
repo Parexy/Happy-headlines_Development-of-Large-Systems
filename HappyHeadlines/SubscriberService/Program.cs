@@ -1,20 +1,41 @@
+
+using Microsoft.EntityFrameworkCore;
+using SubscriberService.Data;
+using SubscriberService.Middleware;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
 builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+
 builder.Services.AddOpenApi();
+
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+// Subscriber database.
+builder.Services.AddDbContext<SubscriberDbContext>(options =>
+{
+    var connectionString =
+        builder.Configuration.GetConnectionString(
+            "DefaultConnection")
+        ?? throw new InvalidOperationException(
+            "Subscriber database connection string is missing.");
+
+    options.UseNpgsql(connectionString);
+});
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
 
-app.UseHttpsRedirection();
+// Check the release toggle before executing controllers.
+app.UseMiddleware<ReleaseToggleMiddleware>();
+
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseAuthorization();
 

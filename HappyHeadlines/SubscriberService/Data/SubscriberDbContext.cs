@@ -1,0 +1,35 @@
+﻿using Microsoft.EntityFrameworkCore;
+using SubscriberService.Models;
+
+namespace SubscriberService.Data;
+
+public class SubscriberDbContext : DbContext
+{
+    public SubscriberDbContext(
+        DbContextOptions<SubscriberDbContext> options)
+        : base(options)
+    {
+    }
+
+    public DbSet<ReleaseToggle> ReleaseToggles
+        => Set<ReleaseToggle>();
+
+    protected override void OnModelCreating(
+        ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<ReleaseToggle>(entity =>
+        {
+            entity.ToTable("feature_flags");
+
+            entity.HasKey(x => x.Name);
+
+            entity.Property(x => x.Name)
+                .HasColumnName("name")
+                .HasMaxLength(100);
+
+            entity.Property(x => x.Enabled)
+                .HasColumnName("enabled")
+                .IsRequired();
+        });
+    }
+}

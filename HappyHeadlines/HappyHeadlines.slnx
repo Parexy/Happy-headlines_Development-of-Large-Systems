@@ -12,8 +12,6 @@
   <Folder Name="/Solution Items/">
     <File Path="docker-compose.yml" />
   </Folder>
-  <Project Path="ArticleService.Core/ArticleService.Core.csproj" />
-
   <Project Path="ArticleService/ArticleService.csproj" />
   <Project Path="CommentService/CommentService.csproj" Id="7e37e1bd-3872-4b0e-ae88-f0261d564dd7" />
   <Project Path="DraftService/DraftService.csproj" />

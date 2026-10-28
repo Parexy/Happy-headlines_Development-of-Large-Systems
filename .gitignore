@@ -21,6 +21,8 @@ HappyHeadlines/NewsletterService/obj/
 
 HappyHeadlines/PublisherService/obj/
 
+HappyHeadlines/SubscriberService/obj/
+
 HappyHeadlines/Messaging/obj/
 
 HappyHeadlines/Messaging/bin/
@@ -28,3 +30,7 @@ HappyHeadlines/Messaging/bin/
 HappyHeadlines/Observability/bin/
 
 HappyHeadlines/NewsletterService/bin/
+
+HappyHeadlines/SubscriberService/bin/
+
+

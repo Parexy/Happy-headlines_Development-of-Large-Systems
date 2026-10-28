@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using SubscriberService.Data;
 using SubscriberService.Middleware;
+using Messaging.RabbitMq;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,6 +28,10 @@ builder.Services.AddDbContext<SubscriberDbContext>(options =>
 builder.Services.AddSingleton<
     ISubscriberDbContextFactory,
     SubscriberDbContextFactory>();
+
+// RabbitMQ publisher for subscription events.
+builder.Services.AddSingleton<RabbitMqConnection>();
+builder.Services.AddSingleton<RabbitMqPublisher>();
 
 var app = builder.Build();
 

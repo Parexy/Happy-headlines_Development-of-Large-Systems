@@ -24,6 +24,7 @@ builder.Services.AddSingleton<RabbitMqConnection>();
 builder.Services.AddSingleton<RabbitMqConsumer>();
 
 builder.Services.AddHostedService<ArticlePublishedConsumer>();
+builder.Services.AddHostedService<SubscriberSubscribedConsumer>();
 
 builder.Services.AddHttpClient<
     INewsletterService,

@@ -2,6 +2,9 @@
 using Microsoft.EntityFrameworkCore;
 using SubscriberService.Data;
 using SubscriberService.Models;
+using Messaging;
+using Messaging.Events;
+using Messaging.RabbitMq;
 
 namespace SubscriberService.Controllers;
 
@@ -10,11 +13,13 @@ namespace SubscriberService.Controllers;
 public sealed class SubscribersController : ControllerBase
 {
     private readonly ISubscriberDbContextFactory _dbContextFactory;
+    private readonly RabbitMqPublisher _publisher;
 
     public SubscribersController(
-        ISubscriberDbContextFactory dbContextFactory)
+        ISubscriberDbContextFactory dbContextFactory, RabbitMqPublisher publisher)
     {
         _dbContextFactory = dbContextFactory;
+        _publisher = publisher;
     }
 
     [HttpPost]
@@ -45,6 +50,13 @@ public sealed class SubscribersController : ControllerBase
         dbContext.Subscribers.Add(subscriber);
 
         await dbContext.SaveChangesAsync(cancellationToken);
+
+        await _publisher.PublishAsync(
+            SubscriberMessaging.Exchange, new SubscriberSubscribed(
+                subscriber.Id,
+                subscriber.Email,
+                subscriber.CreatedAt),
+            cancellationToken);
 
         return Created(
             $"/api/subscribers/{subscriber.Id}",

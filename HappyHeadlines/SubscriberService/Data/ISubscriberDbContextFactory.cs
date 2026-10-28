@@ -1,4 +1,4 @@
-﻿namespace SubscriberService.Data;
+namespace SubscriberService.Data;
 
 public interface ISubscriberDbContextFactory
 {

@@ -16,9 +16,6 @@ public class SubscriberDbContext : DbContext
     public DbSet<ReleaseToggle> ReleaseToggles
         => Set<ReleaseToggle>();
 
-    public DbSet<Subscriber> Subscribers
-        => Set<Subscriber>();
-
     protected override void OnModelCreating(
         ModelBuilder modelBuilder)
     {

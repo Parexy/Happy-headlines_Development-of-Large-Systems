@@ -1,3 +1,4 @@
+
 namespace NewsletterService.DTOs;
 
 public class CreateNewsletterRequest

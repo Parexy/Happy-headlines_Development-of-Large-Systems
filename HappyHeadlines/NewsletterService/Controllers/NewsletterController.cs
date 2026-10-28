@@ -18,10 +18,12 @@ public class NewsletterController : ControllerBase
 
     [HttpPost("daily")]
     public async Task<ActionResult<NewsletterDto>>
-        CreateDailyNewsletter()
+        CreateDailyNewsletter(
+            CancellationToken cancellationToken)
     {
         var newsletter =
-            await _newsletterService.CreateDailyNewsletter();
+            await _newsletterService.CreateDailyNewsletter(
+                cancellationToken);
 
         return Ok(newsletter);
     }

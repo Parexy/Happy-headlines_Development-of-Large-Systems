@@ -2,11 +2,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace SubscriberService.Data;
 
-public class SubscriberDbContextFactory : ISubscriberDbContextFactory
+public class SubscriberDbContextFactory
+    : ISubscriberDbContextFactory
 {
     private readonly IConfiguration _configuration;
 
-    public SubscriberDbContextFactory(IConfiguration configuration)
+    public SubscriberDbContextFactory(
+        IConfiguration configuration)
     {
         _configuration = configuration;
     }
@@ -14,7 +16,8 @@ public class SubscriberDbContextFactory : ISubscriberDbContextFactory
     public SubscriberDbContext Create()
     {
         var connectionString =
-            _configuration.GetConnectionString("SubscriberDatabase");
+            _configuration.GetConnectionString(
+                "DefaultConnection");
 
         if (string.IsNullOrWhiteSpace(connectionString))
         {
@@ -22,9 +25,10 @@ public class SubscriberDbContextFactory : ISubscriberDbContextFactory
                 "No database configured for SubscriberService.");
         }
 
-        var options = new DbContextOptionsBuilder<SubscriberDbContext>()
-            .UseNpgsql(connectionString)
-            .Options;
+        var options =
+            new DbContextOptionsBuilder<SubscriberDbContext>()
+                .UseNpgsql(connectionString)
+                .Options;
 
         return new SubscriberDbContext(options);
     }

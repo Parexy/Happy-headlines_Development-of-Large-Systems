@@ -24,6 +24,10 @@ builder.Services.AddDbContext<SubscriberDbContext>(options =>
     options.UseNpgsql(connectionString);
 });
 
+builder.Services.AddSingleton<
+    ISubscriberDbContextFactory,
+    SubscriberDbContextFactory>();
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())

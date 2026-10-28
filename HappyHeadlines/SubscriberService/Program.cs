@@ -41,6 +41,26 @@ app.UseMiddleware<ReleaseToggleMiddleware>();
 app.UseSwagger();
 app.UseSwaggerUI();
 
+app.MapPut("/api/admin/subscriber-toggle/{enabled:bool}",
+    async (bool enabled, SubscriberDbContext db) =>
+    {
+        var flag = await db.ReleaseToggles
+            .FirstOrDefaultAsync(x => x.Name == "SubscriberService");
+
+        if (flag is null)
+            return Results.NotFound();
+
+        flag.Enabled = enabled;
+
+        await db.SaveChangesAsync();
+
+        return Results.Ok(new
+        {
+            flag.Name,
+            flag.Enabled
+        });
+    });
+
 app.UseAuthorization();
 
 app.MapControllers();

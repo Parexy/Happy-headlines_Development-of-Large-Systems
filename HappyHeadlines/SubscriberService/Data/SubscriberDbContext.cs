@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿
+using Microsoft.EntityFrameworkCore;
 using SubscriberService.Models;
 
 namespace SubscriberService.Data;
@@ -11,7 +12,8 @@ public class SubscriberDbContext : DbContext
     {
     }
 
-    public DbSet<Subscriber> Subscribers => Set<Subscriber>();
+    public DbSet<Subscriber> Subscribers
+        => Set<Subscriber>();
 
     public DbSet<ReleaseToggle> ReleaseToggles
         => Set<ReleaseToggle>();
@@ -21,19 +23,24 @@ public class SubscriberDbContext : DbContext
     {
         modelBuilder.Entity<Subscriber>(entity =>
         {
+            entity.ToTable("subscribers");
+
             entity.HasKey(s => s.Id);
 
             entity.Property(s => s.Id)
+                .HasColumnName("id")
                 .ValueGeneratedOnAdd();
 
             entity.Property(s => s.Email)
-                .IsRequired()
-                .HasMaxLength(320);
+                .HasColumnName("email")
+                .HasMaxLength(320)
+                .IsRequired();
 
             entity.HasIndex(s => s.Email)
                 .IsUnique();
 
             entity.Property(s => s.CreatedAt)
+                .HasColumnName("created_at")
                 .IsRequired();
         });
 
@@ -49,27 +56,6 @@ public class SubscriberDbContext : DbContext
 
             entity.Property(x => x.Enabled)
                 .HasColumnName("enabled")
-                .IsRequired();
-        });
-
-        modelBuilder.Entity<Subscriber>(entity =>
-        {
-            entity.ToTable("subscribers");
-
-            entity.HasKey(x => x.Id);
-
-            entity.Property(x => x.Id)
-                .HasColumnName("id");
-
-            entity.Property(x => x.Email)
-                .HasColumnName("email")
-                .HasMaxLength(320)
-                .IsRequired();
-
-            entity.HasIndex(x => x.Email).IsUnique();
-
-            entity.Property(x => x.CreatedAt)
-                .HasColumnName("created_at")
                 .IsRequired();
         });
     }

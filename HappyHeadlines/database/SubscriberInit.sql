@@ -7,3 +7,10 @@ CREATE TABLE IF NOT EXISTS feature_flags
 INSERT INTO feature_flags (name, enabled)
 VALUES ('SubscriberService', FALSE)
 ON CONFLICT (name) DO NOTHING;
+
+CREATE TABLE IF NOT EXISTS subscribers
+(
+    id UUID PRIMARY KEY,
+    email VARCHAR(320) NOT NULL UNIQUE,
+    created_at TIMESTAMPTZ NOT NULL
+);

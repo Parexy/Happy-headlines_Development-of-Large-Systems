@@ -4,5 +4,6 @@ namespace NewsletterService.Services;
 
 public interface INewsletterService
 {
-    Task<NewsletterDto> CreateDailyNewsletter();
+    Task<NewsletterDto> CreateDailyNewsletter(
+        CancellationToken cancellationToken = default);
 }

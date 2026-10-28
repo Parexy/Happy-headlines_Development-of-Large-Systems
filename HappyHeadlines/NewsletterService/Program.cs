@@ -1,6 +1,7 @@
 using Messaging.RabbitMq;
 using NewsletterService.Messaging;
 using NewsletterService.Services;
+using NewsletterService.Clients;
 using Observability;
 using System.Text.Json.Serialization;
 
@@ -33,6 +34,40 @@ builder.Services.AddHttpClient<
                 builder.Configuration["ArticleService:BaseUrl"]
                 ?? "http://article-load-balancer");
         });
+
+builder.Services
+    .AddHttpClient<
+        ISubscriberServiceClient,
+        SubscriberServiceClient>(client =>
+        {
+            client.BaseAddress = new Uri(
+                builder.Configuration["SubscriberService:BaseUrl"]
+                ?? "http://subscriber-service:8080");
+        })
+    .AddStandardResilienceHandler(options =>
+    {
+        // Total request timeout.
+        options.TotalRequestTimeout.Timeout =
+            TimeSpan.FromSeconds(3);
+
+        // Timeout for each attempt.
+        options.AttemptTimeout.Timeout =
+            TimeSpan.FromSeconds(2);
+
+        // Disable retries.
+        options.Retry.MaxRetryAttempts = 0;
+
+        // Circuit breaker.
+        options.CircuitBreaker.FailureRatio = 0.5;
+
+        options.CircuitBreaker.MinimumThroughput = 4;
+
+        options.CircuitBreaker.SamplingDuration =
+            TimeSpan.FromSeconds(10);
+
+        options.CircuitBreaker.BreakDuration =
+            TimeSpan.FromSeconds(30);
+    });
 
 builder.Services.AddAuthorization();
 

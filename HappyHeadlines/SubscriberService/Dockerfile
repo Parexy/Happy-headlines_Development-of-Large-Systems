@@ -13,6 +13,9 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["SubscriberService/SubscriberService.csproj", "SubscriberService/"]
+COPY ["Messaging/Messaging.csproj", "Messaging/"]
+COPY ["Observability/Observability.csproj", "Observability/"]
+
 RUN dotnet restore "./SubscriberService/SubscriberService.csproj"
 COPY . .
 WORKDIR "/src/SubscriberService"

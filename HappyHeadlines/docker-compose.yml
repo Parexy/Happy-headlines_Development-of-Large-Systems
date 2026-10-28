@@ -390,6 +390,7 @@ services:
 
       # Direct service-to-service communication for daily newsletters.
       ArticleService__BaseUrl: "http://article-load-balancer"
+      SubscriberService__BaseUrl: "http://subscriber-service:8080"
 
     depends_on:
       rabbitmq:

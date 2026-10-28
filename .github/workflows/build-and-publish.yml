@@ -32,6 +32,8 @@ jobs:
             image: profanity-service
           - service: PublisherService
             image: publisher-service
+          - service: SubscriberService
+            image: subscriber-service
 
     steps:
       - name: Checkout repository

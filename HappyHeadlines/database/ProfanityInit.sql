@@ -14,3 +14,9 @@ VALUES
     ('bitch'),
     ('asshole')
 ON CONFLICT DO NOTHING;
+
+CREATE MATERIALIZED VIEW "profanity_words" AS
+SELECT
+    "Id",
+    "Word"
+FROM "Profanity";

@@ -12,6 +12,9 @@ public class ProfanityDbContext : DbContext
 
     public DbSet<Profanity> Profanity => Set<Profanity>();
 
+    public DbSet<ProfanityWordView> ProfanityWordsView
+        => Set<ProfanityWordView>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Profanity>(entity =>
@@ -27,5 +30,13 @@ public class ProfanityDbContext : DbContext
                 .IsRequired()
                 .HasMaxLength(50);
         });
+
+        // Profanity materialized view
+        modelBuilder.Entity<ProfanityWordView>(entity =>
+        {
+            entity.HasNoKey();
+            entity.ToView("profanity_words");
+        });
+
     }
 }

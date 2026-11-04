@@ -41,7 +41,7 @@ namespace ProfanityService.Controllers
                     },
                     StringSplitOptions.RemoveEmptyEntries);
 
-            var containsProfanity = await db.Profanity
+            var containsProfanity = await db.ProfanityWordsView
                 .AnyAsync(p => words.Contains(p.Word.ToLower()));
 
             return Ok(new CheckProfanityResponse
@@ -83,6 +83,10 @@ namespace ProfanityService.Controllers
 
             await db.SaveChangesAsync();
 
+            // Refresh the materialized view
+            await db.Database.ExecuteSqlRawAsync(
+                "REFRESH MATERIALIZED VIEW profanity_words;");
+
             return CreatedAtAction(
                 nameof(AddWord),
                 new { id = profanityWord.Id },
@@ -108,6 +112,10 @@ namespace ProfanityService.Controllers
             db.Profanity.Remove(word);
 
             await db.SaveChangesAsync();
+
+            // Refresh the materialized view
+            await db.Database.ExecuteSqlRawAsync(
+                "REFRESH MATERIALIZED VIEW profanity_words;");
 
             return NoContent();
         }

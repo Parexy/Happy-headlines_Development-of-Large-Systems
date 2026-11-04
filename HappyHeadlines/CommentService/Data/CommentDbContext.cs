@@ -38,7 +38,12 @@ public class CommentDbContext : DbContext
             entity.Property(c => c.UpdatedAt)
                 .IsRequired(false);
 
-            entity.HasIndex(c => c.ArticleId);
+            entity.HasIndex(c => new
+            {
+                c.ArticleId,
+                c.CreatedAt,
+                c.Id
+            });
         });
     }
 }

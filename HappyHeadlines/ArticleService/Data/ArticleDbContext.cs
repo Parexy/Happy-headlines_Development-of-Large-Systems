@@ -40,6 +40,9 @@ public class ArticleDbContext : DbContext
 
             entity.Property(a => a.UpdatedAt)
                 .IsRequired();
+
+            entity.HasIndex(a => new { a.CreatedAt, a.Id })
+                .IsDescending();
         });
     }
 }

@@ -13,5 +13,5 @@ CREATE TABLE IF NOT EXISTS "Comments"
     "UpdatedAt" timestamp with time zone NULL
 );
 
-CREATE INDEX IF NOT EXISTS "IX_Comments_ArticleId"
-    ON "Comments" ("ArticleId");
+CREATE INDEX IF NOT EXISTS "IX_Comments_ArticleId_CreatedAt_Id"
+    ON "Comments" ("ArticleId", "CreatedAt", "Id");

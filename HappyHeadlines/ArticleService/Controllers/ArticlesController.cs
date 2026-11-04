@@ -114,14 +114,17 @@ public class ArticlesController : ControllerBase
     }
 
     [HttpGet("latest")]
-    public async Task<ActionResult<IEnumerable<Article>>> GetLatest()
+    public async Task<ActionResult<IEnumerable<Article>>> GetLatest(
+        CancellationToken cancellationToken)
     {
         await using var db = _dbContextFactory.Create(ArticleRegion.Global);
 
         var articles = await db.Articles
+            .AsNoTracking()
             .OrderByDescending(a => a.CreatedAt)
+            .ThenByDescending(a => a.Id)
             .Take(20)
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
 
         return Ok(articles);
     }

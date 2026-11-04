@@ -95,6 +95,7 @@ namespace CommentService.Controllers
                     comment.ArticleId == articleId)
                 .OrderBy(comment =>
                     comment.CreatedAt)
+                .ThenBy(comment => comment.Id)
                 .ToListAsync(cancellationToken);
 
             // Store the complete comment list for this article.

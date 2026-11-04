@@ -28,12 +28,24 @@ namespace CommentService.Controllers
         }
 
 
-        // GET /api/comments
+        // GET /api/comments?page=1&pageSize=10
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Comment>>> GetAll()
+        public async Task<ActionResult<IEnumerable<Comment>>> GetAll(
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10)
         {
+            // Validate pagination parameters
+            if (page < 1 || pageSize < 1)
+                return BadRequest("Page and pageSize must be greater than 0.");
+
+            // Limit maximum page size
+            pageSize = Math.Min(pageSize, 100);
+
             var comments = await _db.Comments
                 .AsNoTracking()
+                .OrderBy(c => c.Id)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
 
             return Ok(comments);
